@@ -53,7 +53,7 @@ class PersonalAssistant(Agent):
             "message": message,
         }
         if not settings.backend_base_url:
-            # No API service configured: the worker log is the record.
+            # No storage API configured: the worker log is the record.
             logger.warning("message taken (no backend configured): %s", payload)
             return MESSAGE_RECORDED
         try:

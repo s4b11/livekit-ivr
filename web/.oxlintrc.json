@@ -18,6 +18,8 @@
     "src/components/ui/**",
     "src/components/agents-ui/**",
     "src/hooks/agents-ui/**",
-    "dist/**"
+    "dist/**",
+    "worker-configuration.d.ts",
+    ".wrangler/**"
   ]
 }

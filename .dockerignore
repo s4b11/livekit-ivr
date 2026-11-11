@@ -13,10 +13,10 @@ __pycache__/
 dist/
 build/
 
-# Web UI (the agent image does not need it; Dockerfile.api builds it in its own stage)
+# Web project (deployed to Cloudflare, not part of the agent image)
 node_modules/
 web/
-src/voice_assistant/api/static/app/
+contract/
 
 # Virtual environments
 .venv/
@@ -52,7 +52,6 @@ coverage/
 CONTRIBUTING.md
 LICENSE
 docs/
-docker-compose.yml
 transcripts_fallback/
 
 # Coding agent files

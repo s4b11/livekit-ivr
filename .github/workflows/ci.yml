@@ -15,22 +15,8 @@ concurrency:
 
 jobs:
   test:
-    name: Lint and test
+    name: Agent (lint and test)
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: assistant
-          POSTGRES_PASSWORD: assistant
-          POSTGRES_DB: voice_assistant
-        ports:
-          - 5433:5432
-        options: >-
-          --health-cmd "pg_isready -U assistant -d voice_assistant"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 10
     env:
       # The LLM-judged behaviour tests call LiveKit Inference, so they are opt-in:
       # set the repository variable RUN_AGENT_EVALS=true to run them. Otherwise
@@ -58,7 +44,7 @@ jobs:
         run: uv run pytest -q
 
   web:
-    name: Web UI
+    name: Web (lint, test, build)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -77,6 +63,9 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+      - name: Test the Worker
+        run: npm test
 
       - name: Type-check and build
         run: npm run build

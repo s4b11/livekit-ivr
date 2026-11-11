@@ -28,23 +28,14 @@ class Settings(BaseSettings):
     # --- Agent wiring ---
     agent_name: str = "sabith-assistant"
     sip_room_prefix: str = "call-"
-    web_room_prefix: str = "web-"
     phone_number: str = ""  # set after provisioning
 
-    # --- API service ---
-    database_url: str = "postgresql+asyncpg://assistant:assistant@localhost:5433/voice_assistant"
+    # --- Storage API (the Cloudflare Worker in web/) ---
     # Where the agent posts transcripts and messages. Empty disables persistence:
     # the agent still works, and messages are written to the worker log instead.
     backend_base_url: str = ""
-    # Shared secret protecting the call/message endpoints. Empty = no auth (local dev).
+    # Shared secret the Worker requires on its private endpoints.
     backend_api_key: str = ""
-    # Comma-separated origins allowed to request embed tokens ("*" = any site).
-    embed_allowed_origins: str = "*"
-    embed_token_ttl_minutes: int = 10
-
-    @property
-    def cors_origins(self) -> list[str]:
-        return [o.strip() for o in self.embed_allowed_origins.split(",") if o.strip()]
 
     @property
     def livekit_configured(self) -> bool:

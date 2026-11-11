@@ -6,7 +6,8 @@ Run locally against LiveKit Cloud:
 The worker registers under `AGENT_NAME` (default "sabith-assistant") and is
 dispatched explicitly: by the SIP dispatch rule for phone calls, and by the
 access token's room configuration for web and embedded sessions. After every
-conversation the transcript is posted to the API service, when one is configured.
+conversation the transcript is posted to the storage API (the Cloudflare Worker
+in web/), when one is configured.
 """
 
 import json
@@ -55,7 +56,7 @@ def extract_call_meta(participant: rtc.RemoteParticipant) -> dict:
 
 
 async def on_session_end(ctx: JobContext) -> None:
-    """Store the finished conversation's transcript through the API service."""
+    """Store the finished conversation's transcript through the storage API."""
     if not settings.backend_base_url:
         logger.info("no backend configured - transcript not stored")
         return

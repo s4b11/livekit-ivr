@@ -151,7 +151,7 @@
     try {
       await room.localParticipant.setMicrophoneEnabled(enabled);
       micOn = enabled;
-    } catch (err) {
+    } catch {
       micOn = false;
       note("Microphone unavailable - you can still type.");
     }
@@ -195,8 +195,8 @@
       setLive(true);
       await setMic(true);
       input.focus();
-    } catch (err) {
-      if (room) { try { await room.disconnect(); } catch (e) { /* already closed */ } }
+    } catch {
+      if (room) { try { await room.disconnect(); } catch { /* already closed */ } }
       cleanup();
       note(err && err.message ? err.message : "Could not connect. Please try again.");
     }
@@ -213,7 +213,7 @@
     addLine(text, "msg user");
     try {
       await room.localParticipant.sendText(text, { topic: "lk.chat" });
-    } catch (err) {
+    } catch {
       note("Message not sent. Please try again.");
     }
   }

@@ -1,13 +1,12 @@
 import path from 'node:path'
+import { cloudflare } from '@cloudflare/vite-plugin'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
-// The API service serves the built app at /app/ (see Dockerfile.api).
-// In development, API calls are proxied to it on port 8000.
+// One dev server runs both halves: the React app and the Worker (worker/index.ts),
+// with a local D1 database. `vite build` produces what `wrangler deploy` ships.
 export default defineConfig({
-  base: '/app/',
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), cloudflare()],
   resolve: { alias: { '@': path.resolve(__dirname, './src') } },
-  server: { proxy: { '/api': 'http://localhost:8000' } },
 })

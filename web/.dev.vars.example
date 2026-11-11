@@ -1,0 +1,6 @@
+# Local development secrets for the Worker. Copy to .dev.vars (never committed).
+# In production these are set from GitHub secrets by the deploy workflow.
+LIVEKIT_URL=wss://your-project.livekit.cloud
+LIVEKIT_API_KEY=
+LIVEKIT_API_SECRET=
+BACKEND_API_KEY=local-dev-key

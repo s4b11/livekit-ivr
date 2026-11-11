@@ -16,10 +16,9 @@ venv/
 .coverage
 htmlcov/
 
-# --- Web UI ---
+# --- Web project ---
 node_modules/
 web/dist/
-src/voice_assistant/api/static/app/
 
 # --- Runtime artifacts ---
 transcripts_fallback/

@@ -1,4 +1,4 @@
-/** Origin of the API service. Empty means same origin (or the Vite dev proxy). */
+/** Origin of the Worker API. Empty means same origin, which is the normal case. */
 export const API_BASE = (import.meta.env.VITE_API_BASE ?? '').replace(/\/$/, '');
 
 export const TOKEN_ENDPOINT = `${API_BASE}/api/v1/token`;

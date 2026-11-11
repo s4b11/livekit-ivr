@@ -1,0 +1,48 @@
+{
+  "room_name": "call-_+15559876543_x7ab",
+  "agent_name": "sabith-assistant",
+  "channel": "phone",
+  "caller_number": "+15559876543",
+  "called_number": "+14849649535",
+  "sip_call_id": "SCL_contract",
+  "status": "completed",
+  "started_at": "2026-07-21T16:06:40+00:00",
+  "ended_at": "2026-07-21T16:07:22+00:00",
+  "duration_seconds": 42.0,
+  "items": [
+    {
+      "role": "assistant",
+      "content": "You've reached Sabith's AI assistant, how can I help?",
+      "interrupted": false,
+      "timestamp": "2026-07-21T16:06:40+00:00"
+    },
+    {
+      "role": "user",
+      "content": "What does Sabith work on?",
+      "interrupted": false,
+      "timestamp": "2026-07-21T16:06:45+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Sabith builds real-time voice AI agents",
+      "interrupted": true,
+      "timestamp": "2026-07-21T16:06:50+00:00"
+    },
+    {
+      "role": "tool_call",
+      "content": "take_message({\"caller_name\": \"Alice\"})",
+      "interrupted": false,
+      "timestamp": "2026-07-21T16:06:55+00:00"
+    },
+    {
+      "role": "tool_output",
+      "content": "The message has been recorded.",
+      "interrupted": false,
+      "timestamp": "2026-07-21T16:06:56+00:00"
+    }
+  ],
+  "report": {
+    "job_id": "job_contract",
+    "sdk_version": "1.6.6"
+  }
+}
