@@ -1,0 +1,68 @@
+name: Deploy
+
+# Deploys the agent worker to LiveKit Cloud after CI passes.
+# One-time setup is described in docs/deployment.md.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - "Dockerfile"
+      - ".dockerignore"
+      - "livekit.toml"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+    secrets: inherit
+
+  deploy:
+    name: Deploy to LiveKit Cloud
+    needs: ci
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the agent is registered
+        id: config
+        run: |
+          if [ -f livekit.toml ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::livekit.toml not found - skipping deploy. Run 'lk agent create' once and commit livekit.toml (see docs/deployment.md)."
+          fi
+
+      - name: Deploy agent
+        if: steps.config.outputs.ready == 'true'
+        uses: livekit/deploy-action@v2.12.2
+        env:
+          LIVEKIT_URL: ${{ secrets.LIVEKIT_URL }}
+          LIVEKIT_API_KEY: ${{ secrets.LIVEKIT_API_KEY }}
+          LIVEKIT_API_SECRET: ${{ secrets.LIVEKIT_API_SECRET }}
+          SECRET_LIST: ${{ secrets.SECRET_LIST }}
+        with:
+          OPERATION: deploy
+
+      - name: Wait for the new version to be running
+        if: steps.config.outputs.ready == 'true'
+        uses: livekit/deploy-action@v2.12.2
+        env:
+          LIVEKIT_URL: ${{ secrets.LIVEKIT_URL }}
+          LIVEKIT_API_KEY: ${{ secrets.LIVEKIT_API_KEY }}
+          LIVEKIT_API_SECRET: ${{ secrets.LIVEKIT_API_SECRET }}
+        with:
+          OPERATION: status-retry
+          TIMEOUT: 10m

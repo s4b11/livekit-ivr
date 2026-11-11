@@ -1,0 +1,31 @@
+# --- Secrets: never commit ---
+.env
+.env.*
+!.env.example
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# --- Testing ---
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# --- Web UI ---
+node_modules/
+web/dist/
+src/voice_assistant/api/static/app/
+
+# --- Runtime artifacts ---
+transcripts_fallback/
+
+# --- Editors / OS ---
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

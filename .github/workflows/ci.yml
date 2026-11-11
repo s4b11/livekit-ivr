@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Lint and test
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: assistant
+          POSTGRES_PASSWORD: assistant
+          POSTGRES_DB: voice_assistant
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U assistant -d voice_assistant"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      # The LLM-judged behaviour tests call LiveKit Inference, so they are opt-in:
+      # set the repository variable RUN_AGENT_EVALS=true to run them. Otherwise
+      # they are skipped and the rest of the suite still runs.
+      LIVEKIT_URL: ${{ vars.RUN_AGENT_EVALS == 'true' && secrets.LIVEKIT_URL || '' }}
+      LIVEKIT_API_KEY: ${{ vars.RUN_AGENT_EVALS == 'true' && secrets.LIVEKIT_API_KEY || '' }}
+      LIVEKIT_API_SECRET: ${{ vars.RUN_AGENT_EVALS == 'true' && secrets.LIVEKIT_API_SECRET || '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --locked
+
+      - name: Lint
+        run: uv run ruff check .
+
+      - name: Check formatting
+        run: uv run ruff format --check .
+
+      - name: Test
+        run: uv run pytest -q
+
+  web:
+    name: Web UI
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type-check and build
+        run: npm run build
+
+  image:
+    name: Build agent image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the image LiveKit Cloud will build
+        run: docker build --tag voice-assistant-agent .

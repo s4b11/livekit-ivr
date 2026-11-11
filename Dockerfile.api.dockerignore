@@ -1,0 +1,15 @@
+# Build context for Dockerfile.api (it needs web/, unlike the agent image).
+.git
+.github/
+.venv/
+**/node_modules/
+web/dist/
+src/voice_assistant/api/static/app/
+**/__pycache__/
+.pytest_cache/
+.ruff_cache/
+.env
+.env.*
+tests/
+docs/
+transcripts_fallback/
