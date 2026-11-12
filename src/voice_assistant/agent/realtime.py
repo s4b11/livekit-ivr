@@ -4,6 +4,28 @@ from google.genai import types
 from livekit.plugins import google
 
 from voice_assistant.config import Settings
+from voice_assistant.profile import PROFILE
+
+# Terms the transcriber should recognise, so they are not misheard.
+TRANSCRIPTION_PHRASES = [
+    PROFILE.name,
+    PROFILE.first_name,
+    *(project.name for project in PROFILE.projects),
+    "IoTides",
+    "LiveKit",
+    "FastAPI",
+    "Gemini",
+    "Kollam",
+]
+
+
+def build_transcription_config(settings: Settings) -> types.AudioTranscriptionConfig:
+    """Transcription pinned to the configured language(s) instead of auto-detection."""
+    codes = settings.transcription_language_codes
+    return types.AudioTranscriptionConfig(
+        language_hints=types.LanguageHints(language_codes=codes) if codes else None,
+        adaptation_phrases=TRANSCRIPTION_PHRASES,
+    )
 
 
 def build_realtime_model(settings: Settings) -> google.realtime.RealtimeModel:
@@ -17,6 +39,8 @@ def build_realtime_model(settings: Settings) -> google.realtime.RealtimeModel:
       replies stall for seconds while others are instant.
     - Input and output audio transcription are enabled so the stored transcript
       (and the web widget's captions) contain both sides of the conversation.
+      Both are pinned to TRANSCRIPTION_LANGUAGES (default en-IN), so English
+      speech is not transcribed in another script.
     """
     kwargs: dict = {}
     if settings.gemini_live_model:
@@ -27,8 +51,8 @@ def build_realtime_model(settings: Settings) -> google.realtime.RealtimeModel:
         voice=settings.gemini_voice,
         temperature=0.6,
         thinking_config=types.ThinkingConfig(thinking_budget=0),
-        input_audio_transcription=types.AudioTranscriptionConfig(),
-        output_audio_transcription=types.AudioTranscriptionConfig(),
+        input_audio_transcription=build_transcription_config(settings),
+        output_audio_transcription=build_transcription_config(settings),
         realtime_input_config=types.RealtimeInputConfig(
             automatic_activity_detection=types.AutomaticActivityDetection(
                 disabled=False,

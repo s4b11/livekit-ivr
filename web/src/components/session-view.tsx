@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { useAgent, useSessionMessages, type UseSessionReturn } from '@livekit/components-react';
 
 import { AgentAudioVisualizerAura } from '@/components/agents-ui/agent-audio-visualizer-aura';
-import { AgentChatTranscript } from '@/components/agents-ui/agent-chat-transcript';
 import { AgentControlBar } from '@/components/agents-ui/agent-control-bar';
 import { StartAudioButton } from '@/components/agents-ui/start-audio-button';
+import { ChatTranscript } from '@/components/chat-transcript';
 import { AURA_COLOR } from '@/lib/config';
 import { cn } from '@/lib/utils';
 
@@ -32,7 +32,7 @@ export function SessionView({ session, themeMode, onDeviceError }: SessionViewPr
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   return (
-    <main className="mx-auto flex min-h-0 w-full max-w-2xl flex-1 flex-col px-4 pb-4 sm:pb-6">
+    <main className="mx-auto flex min-h-0 w-full max-w-2xl flex-1 flex-col px-3 pb-3 sm:px-4 sm:pb-6">
       {/* The aura shrinks to make room when the chat transcript is open. */}
       <section
         aria-label="Assistant"
@@ -42,7 +42,9 @@ export function SessionView({ session, themeMode, onDeviceError }: SessionViewPr
         )}
       >
         <AgentAudioVisualizerAura
-          size={isChatOpen ? 'md' : 'xl'}
+          size={isChatOpen ? 'md' : 'lg'}
+          // Grow on larger screens; on phones the 'lg' size already fills the width.
+          className={cn(!isChatOpen && 'sm:h-[320px]', isChatOpen && 'max-sm:h-[88px]')}
           color={AURA_COLOR}
           colorShift={0.1}
           themeMode={themeMode}
@@ -56,16 +58,12 @@ export function SessionView({ session, themeMode, onDeviceError }: SessionViewPr
       </section>
 
       {isChatOpen && (
-        <AgentChatTranscript
-          agentState={state}
-          messages={messages}
-          className="min-h-0 flex-1 rounded-xl border"
-        />
+        <ChatTranscript agentState={state} messages={messages} className="min-h-0 flex-1" />
       )}
 
       <AgentControlBar
         variant="livekit"
-        className="mt-4 shrink-0"
+        className="mt-3 shrink-0"
         isConnected={session.isConnected}
         isChatOpen={isChatOpen}
         onIsChatOpenChange={setIsChatOpen}

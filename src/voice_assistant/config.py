@@ -24,6 +24,10 @@ class Settings(BaseSettings):
     # Optional BCP-47 code (e.g. "en-US"). Native-audio models pick the language
     # from the prompt, so this is left empty unless the chosen model needs it.
     gemini_language: str = ""
+    # Languages the speech transcription should expect, as comma-separated BCP-47
+    # codes. Pinning this stops English speech being transcribed in another script.
+    # Empty = let Gemini detect the language.
+    transcription_languages: str = "en-IN"
 
     # --- Agent wiring ---
     agent_name: str = "sabith-assistant"
@@ -36,6 +40,10 @@ class Settings(BaseSettings):
     backend_base_url: str = ""
     # Shared secret the Worker requires on its private endpoints.
     backend_api_key: str = ""
+
+    @property
+    def transcription_language_codes(self) -> list[str]:
+        return [c.strip() for c in self.transcription_languages.split(",") if c.strip()]
 
     @property
     def livekit_configured(self) -> bool:
