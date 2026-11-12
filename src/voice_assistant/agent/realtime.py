@@ -54,6 +54,8 @@ def build_realtime_model(settings: Settings) -> google.realtime.RealtimeModel:
         kwargs["model"] = settings.gemini_live_model
     if uses_thinking_budget(settings.gemini_live_model):
         kwargs["thinking_config"] = types.ThinkingConfig(thinking_budget=0)
+    if settings.gemini_api_version:
+        kwargs["api_version"] = settings.gemini_api_version
     if settings.gemini_language:
         kwargs["language"] = settings.gemini_language
     return google.realtime.RealtimeModel(

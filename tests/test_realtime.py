@@ -33,6 +33,12 @@ def test_defaults_to_gemini_3_8_live(monkeypatch):
     assert model._opts.thinking_config is NOT_GIVEN
 
 
+def test_uses_the_v1beta_live_endpoint(monkeypatch):
+    # google-genai 3.x defaults to v1, where the Live API returns HTTP 404.
+    monkeypatch.setenv("GOOGLE_API_KEY", "test-key")
+    assert build_realtime_model(_settings())._opts.api_version == "v1beta"
+
+
 def test_thinking_budget_still_applies_to_gemini_2_5(monkeypatch):
     monkeypatch.setenv("GOOGLE_API_KEY", "test-key")
     model = build_realtime_model(
