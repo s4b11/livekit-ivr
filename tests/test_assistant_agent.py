@@ -12,6 +12,7 @@ from livekit.agents import AgentSession, inference, mock_tools
 
 from conftest import requires_livekit
 from voice_assistant.agent.assistant import MESSAGE_RECORDED, PersonalAssistant
+from voice_assistant.profile import PROFILE
 
 pytestmark = requires_livekit
 
@@ -23,6 +24,8 @@ NON_LATIN_RE = re.compile(r"[^\W\d_]", re.UNICODE)
 
 
 def _non_latin_letters(text: str) -> list[str]:
+    # The owner's name may appear in Malayalam script; nothing else may.
+    text = text.replace(PROFILE.spoken_name, "").replace(PROFILE.spoken_first_name, "")
     return [ch for ch in NON_LATIN_RE.findall(text) if ord(ch) > 0x024F]
 
 

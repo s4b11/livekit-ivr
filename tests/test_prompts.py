@@ -10,15 +10,21 @@ from voice_assistant.agent.prompts import (
 from voice_assistant.profile import PROFILE, render_profile
 
 
-def test_instructions_enforce_english_only():
+def test_instructions_enforce_english_with_an_indian_accent():
     assert "Speak ONLY in English" in INSTRUCTIONS
-    # No non-Latin script anywhere in the prompt.
-    assert not re.search(r"[^\x00-\x7f]", INSTRUCTIONS)
+    assert "Indian English" in INSTRUCTIONS
+
+
+def test_only_the_owners_name_is_in_malayalam_script():
+    # The name is the single non-English word: strip it and only ASCII remains.
+    stripped = INSTRUCTIONS.replace(PROFILE.spoken_name, "").replace(PROFILE.spoken_first_name, "")
+    assert not re.search(r"[^\x00-\x7f]", stripped)
+    assert "സാബിത്ത് എസ് ബി" in INSTRUCTIONS
 
 
 def test_instructions_introduce_the_owner_not_impersonate_him():
-    assert "personal AI assistant for Sabith S B" in INSTRUCTIONS
-    assert "You are an AI assistant, not Sabith" in INSTRUCTIONS
+    assert "personal AI assistant for സാബിത്ത് എസ് ബി" in INSTRUCTIONS
+    assert "You are an AI assistant, not സാബിത്ത്" in INSTRUCTIONS
 
 
 def test_instructions_contain_every_profile_fact():
@@ -39,5 +45,5 @@ def test_profile_shares_no_private_phone_number():
 
 def test_greeting_introduces_the_assistant_in_english():
     greeting = build_greeting_instructions()
-    assert "Sabith S B's AI assistant" in greeting
-    assert "English" in greeting
+    assert "സാബിത്ത് എസ് ബി's AI assistant" in greeting
+    assert "Indian English" in greeting

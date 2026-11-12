@@ -30,6 +30,9 @@ class Project:
 class Profile:
     name: str
     first_name: str
+    # How the name is written in the prompt so the voice model pronounces it right.
+    spoken_name: str
+    spoken_first_name: str
     headline: str
     location: str
     timezone: str
@@ -47,6 +50,8 @@ class Profile:
 PROFILE = Profile(
     name="Sabith S B",
     first_name="Sabith",
+    spoken_name="സാബിത്ത് എസ് ബി",
+    spoken_first_name="സാബിത്ത്",
     headline="AI Software Engineer focused on voice AI, GenAI, and Python and Rust backends",
     location="Kollam, Kerala, India",
     timezone="India Standard Time, UTC plus five thirty",
@@ -194,7 +199,7 @@ PROFILE = Profile(
 def render_profile(profile: Profile = PROFILE) -> str:
     """Render the profile as plain text for the system prompt."""
     lines: list[str] = [
-        f"Name: {profile.name}",
+        f"Name: {profile.spoken_name} (written in English as {profile.name})",
         f"Headline: {profile.headline}",
         f"Based in: {profile.location} ({profile.timezone})",
         "",
