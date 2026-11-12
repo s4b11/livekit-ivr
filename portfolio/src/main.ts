@@ -7,7 +7,13 @@ const ASSISTANT_ORIGIN = 'https://sabithsb.sabithsb36624.workers.dev';
 
 declare global {
   interface Window {
-    VoiceAssistant?: { open(): void; close(): void; start(): Promise<void>; stop(): Promise<void> };
+    VoiceAssistant?: {
+      open(): void;
+      close(): void;
+      start(): Promise<void>;
+      stop(): Promise<void>;
+      setTheme(theme: string): void;
+    };
   }
 }
 
@@ -18,6 +24,7 @@ const $$ = <T extends Element = HTMLElement>(sel: string, root: ParentNode = doc
 
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const finePointer = matchMedia('(hover: hover) and (pointer: fine)');
+const compactLayout = matchMedia('(max-width: 860px), (pointer: coarse)');
 
 /* ------------------------------------------------------------ hero title */
 function splitWords(el: HTMLElement) {
@@ -82,6 +89,26 @@ function initScroll() {
   const timeline = $('[data-timeline]');
   const supportsScrollTimeline = CSS.supports('animation-timeline: scroll()');
   let lastY = scrollY;
+  // Distance scrolled in the current direction. The header only hides after a
+  // deliberate scroll down and only returns after a deliberate scroll up, so
+  // momentum scrolling and the mobile address bar resizing cannot make it flicker.
+  let travel = 0;
+  const HIDE_AFTER = 140;
+  const SHOW_AFTER = 70;
+
+  const updateNavVisibility = (el: HTMLElement, delta: number, y: number) => {
+    // On phones and tablets the header stays put: hiding it there causes more
+    // jumpiness than it saves space.
+    if (compactLayout.matches || document.body.classList.contains('menu-open') || y < 320) {
+      travel = 0;
+      el.classList.remove('is-hidden');
+      return;
+    }
+    if (delta === 0) return;
+    travel = Math.sign(delta) === Math.sign(travel) ? travel + delta : delta;
+    if (travel > HIDE_AFTER) el.classList.add('is-hidden');
+    else if (travel < -SHOW_AFTER) el.classList.remove('is-hidden');
+  };
   let ticking = false;
 
   const update = () => {
@@ -95,10 +122,7 @@ function initScroll() {
 
     if (nav) {
       nav.classList.toggle('is-scrolled', y > 24);
-      // Hide while reading downward, show on any upward scroll.
-      const menuOpen = document.body.classList.contains('menu-open');
-      nav.classList.toggle('is-hidden', !menuOpen && y > 480 && y > lastY + 4);
-      if (y < lastY - 4) nav.classList.remove('is-hidden');
+      updateNavVisibility(nav, y - lastY, y);
     }
 
     if (timeline) {
@@ -257,6 +281,7 @@ function initTheme() {
   const root = document.documentElement;
   const setTheme = (theme: string) => {
     root.dataset.theme = theme;
+    window.VoiceAssistant?.setTheme(theme);
     try {
       localStorage.setItem('theme', theme);
     } catch {
@@ -341,7 +366,8 @@ function loadAssistant(): Promise<void> {
     script.src = `${ASSISTANT_ORIGIN}/embed/embed.js`;
     script.async = true;
     script.dataset.title = "Sabith's AI assistant";
-    script.dataset.accent = '#0ea5c6';
+    script.dataset.accent = '#5eead4';
+    script.dataset.theme = document.documentElement.dataset.theme ?? 'auto';
     script.onload = () => resolve();
     script.onerror = () => {
       widgetPromise = null;
