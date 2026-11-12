@@ -134,9 +134,8 @@
     '.round{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;flex:none;background:var(--bubble);color:var(--fg);transition:background-color .25s,color .25s,transform .25s var(--ease)}',
     '.round:active{transform:scale(.92)}',
     '.mic[aria-pressed=true]{background:rgba(239,68,68,.14);color:#ef4444}',
-    '.end{width:auto;padding:0 16px 0 13px;gap:6px;display:flex;align-items:center;border-radius:999px;background:#ef4444;color:#fff;font-weight:600;font-size:14px}',
+    '.end{background:#ef4444;color:#fff}',
     '.end:hover{background:#dc2626}',
-    '.end svg{width:18px;height:18px}',
 
     '@media (max-width:480px){:host{bottom:12px;' + side + ':12px;' + otherSide + ':12px}',
     '.panel{width:100%;height:min(640px,calc(100dvh - 88px))}}',
@@ -160,7 +159,7 @@
     '<label class="field"><input type="text" placeholder="Type a message…" aria-label="Message" maxlength="500">' +
     '<button class="send" type="button" aria-label="Send" disabled>' + icon('send') + '</button></label>' +
     '<button class="round mic" type="button" aria-pressed="false" aria-label="Mute microphone" title="Mute microphone">' + icon('mic') + '</button>' +
-    '<button class="round end" type="button" title="End conversation">' + icon('end') + '<span>End</span></button>' +
+    '<button class="round end" type="button" aria-label="End conversation" title="End conversation">' + icon('end') + '</button>' +
     '</div></footer></section>' +
     '<button class="launcher" type="button" aria-expanded="false">' +
     '<span class="dot" aria-hidden="true"></span><span class="label">Talk to my AI assistant</span>' +
