@@ -15,44 +15,25 @@
   --section-y: clamp(88px, 12vw, 160px);
 }
 
-:root,
-:root[data-theme='dark'] {
-  color-scheme: dark;
-  /* Ink and mist: low-contrast surfaces with soft pastel accents. */
-  --bg: #0c0f15;
-  --bg-2: #10141c;
-  --surface: rgba(198, 210, 255, 0.035);
-  --surface-2: rgba(198, 210, 255, 0.065);
-  --line: rgba(198, 210, 255, 0.09);
-  --line-2: rgba(198, 210, 255, 0.17);
-  --fg: #e9edf5;
-  --fg-2: #a3acbf;
-  --fg-3: #6e778c;
-  --accent: #5eead4;
-  --accent-2: #a5b4fc;
-  --accent-3: #f0abfc;
-  --on-accent: #06201c;
-  --grid: rgba(198, 210, 255, 0.04);
-  --orb-opacity: 0.55;
-}
-
-:root[data-theme='light'] {
+:root {
+  /* One theme: plain white with lavender. */
   color-scheme: light;
-  --bg: #f6f7fb;
-  --bg-2: #eef0f7;
-  --surface: rgba(30, 41, 82, 0.03);
-  --surface-2: rgba(30, 41, 82, 0.055);
-  --line: rgba(30, 41, 82, 0.09);
-  --line-2: rgba(30, 41, 82, 0.17);
-  --fg: #141a2a;
-  --fg-2: #4b5468;
-  --fg-3: #8089a0;
-  --accent: #0d9488;
-  --accent-2: #6366f1;
-  --accent-3: #c026d3;
+  --bg: #ffffff;
+  --bg-2: #f8f6ff;
+  --surface: rgba(124, 106, 230, 0.035);
+  --surface-2: rgba(124, 106, 230, 0.07);
+  --line: rgba(110, 92, 210, 0.13);
+  --line-2: rgba(110, 92, 210, 0.24);
+  --fg: #1e1a33;
+  --fg-2: #57516e;
+  --fg-3: #8a84a3;
+  --accent: #7c6ae6; /* lavender, dark enough for small text on white */
+  --accent-2: #a78bfa;
+  --accent-3: #c4b5fd;
+  --lavender-wash: #efeaff;
   --on-accent: #ffffff;
-  --grid: rgba(30, 41, 82, 0.05);
-  --orb-opacity: 0.38;
+  --grid: rgba(124, 106, 230, 0.06);
+  --orb-opacity: 0.42;
 }
 
 /* ------------------------------------------------------------------- base */
@@ -151,8 +132,8 @@ button {
   z-index: 100;
   padding: 10px 14px;
   border-radius: 10px;
-  background: var(--fg);
-  color: var(--bg);
+  background: var(--accent);
+  color: var(--on-accent);
   transition: top 0.2s;
 }
 
@@ -306,11 +287,6 @@ button {
   stroke-linejoin: round;
 }
 
-[data-theme='dark'] .i-moon,
-[data-theme='light'] .i-sun {
-  display: none;
-}
-
 .menu-btn {
   display: none;
   position: relative;
@@ -423,13 +399,13 @@ button {
   min-height: 40px;
   padding: 8px 16px;
   font-size: 0.9em;
-  background: var(--fg);
-  color: var(--bg);
+  background: var(--accent);
+  color: var(--on-accent);
 }
 
 .btn-primary {
-  background: var(--fg);
-  color: var(--bg);
+  background: var(--accent);
+  color: var(--on-accent);
   box-shadow: 0 10px 30px -12px color-mix(in srgb, var(--accent) 70%, transparent);
 }
 
@@ -462,7 +438,7 @@ button {
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: var(--accent);
+  background: currentColor;
 }
 
 .pulse::after {
@@ -470,7 +446,7 @@ button {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background: var(--accent);
+  background: currentColor;
   animation: ping 1.8s var(--ease-out) infinite;
 }
 
@@ -527,7 +503,8 @@ button {
   mix-blend-mode: screen;
 }
 
-[data-theme='light'] .orb span {
+/* Multiply keeps the glow soft and lavender on white. */
+.orb span {
   mix-blend-mode: multiply;
 }
 
@@ -844,9 +821,9 @@ button {
 }
 
 .chip.is-active {
-  background: var(--fg);
-  border-color: var(--fg);
-  color: var(--bg);
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
 }
 
 /* --------------------------------------------------------------- projects */
@@ -974,7 +951,7 @@ button {
 }
 
 .status-live {
-  color: #22c55e;
+  color: #15803d;
   background: rgba(34, 197, 94, 0.1);
 }
 
@@ -984,7 +961,7 @@ button {
 }
 
 .status-poc {
-  color: #f59e0b;
+  color: #b45309;
   background: rgba(245, 158, 11, 0.1);
 }
 
@@ -1325,10 +1302,6 @@ button {
   color: var(--brand);
 }
 
-[data-theme='dark'] .chips li:hover .ico:not(.ico-line) {
-  /* Some brand colours are near-black; lift them so they stay visible on ink. */
-  color: color-mix(in srgb, var(--brand) 75%, white);
-}
 
 .chips li:hover .ico-line {
   color: var(--accent);
@@ -1465,8 +1438,8 @@ button {
   z-index: 70;
   padding: 12px 18px;
   border-radius: 999px;
-  background: var(--fg);
-  color: var(--bg);
+  background: var(--accent);
+  color: var(--on-accent);
   font-size: 0.92em;
   font-weight: 550;
   translate: -50% 140%;
@@ -1478,24 +1451,6 @@ button {
 .toast.is-shown {
   translate: -50% 0;
   opacity: 1;
-}
-
-/* ------------------------------------------------------- view transitions */
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation: none;
-  mix-blend-mode: normal;
-}
-
-::view-transition-new(root) {
-  clip-path: circle(0 at var(--vt-x, 50%) var(--vt-y, 0%));
-  animation: reveal-theme 0.7s var(--ease-out) forwards;
-}
-
-@keyframes reveal-theme {
-  to {
-    clip-path: circle(150vmax at var(--vt-x, 50%) var(--vt-y, 0%));
-  }
 }
 
 /* The assistant widget's floating launcher would cover the hero buttons on a

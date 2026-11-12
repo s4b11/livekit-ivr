@@ -275,31 +275,6 @@ function initCounters() {
   });
 }
 
-/* ------------------------------------------------------------------ theme */
-function initTheme() {
-  const toggle = $('[data-theme-toggle]');
-  const root = document.documentElement;
-  const setTheme = (theme: string) => {
-    root.dataset.theme = theme;
-    window.VoiceAssistant?.setTheme(theme);
-    try {
-      localStorage.setItem('theme', theme);
-    } catch {
-      /* storage unavailable: the choice lasts for this visit only */
-    }
-  };
-
-  toggle?.addEventListener('click', (e) => {
-    const next = root.dataset.theme === 'light' ? 'dark' : 'light';
-    const doc = document as Document & { startViewTransition?: (cb: () => void) => unknown };
-    if (!doc.startViewTransition || reducedMotion.matches) return setTheme(next);
-    // Reveal the new theme as a circle growing from the toggle.
-    root.style.setProperty('--vt-x', `${e.clientX}px`);
-    root.style.setProperty('--vt-y', `${e.clientY}px`);
-    doc.startViewTransition(() => setTheme(next));
-  });
-}
-
 /* ------------------------------------------------------------ mobile menu */
 function initMenu() {
   const btn = $<HTMLButtonElement>('[data-menu]');
@@ -366,8 +341,8 @@ function loadAssistant(): Promise<void> {
     script.src = `${ASSISTANT_ORIGIN}/embed/embed.js`;
     script.async = true;
     script.dataset.title = "Sabith's AI assistant";
-    script.dataset.accent = '#5eead4';
-    script.dataset.theme = document.documentElement.dataset.theme ?? 'auto';
+    script.dataset.accent = '#9d8cf2';
+    script.dataset.theme = 'light';
     script.onload = () => resolve();
     script.onerror = () => {
       widgetPromise = null;
@@ -408,7 +383,6 @@ function boot() {
   initPointer();
   initFilters();
   initCounters();
-  initTheme();
   initMenu();
   initCopy();
   initAssistant();

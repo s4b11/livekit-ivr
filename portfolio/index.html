@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
@@ -9,8 +9,7 @@
       content="Sabith S B builds real-time voice AI agents, LLM retrieval tools, and the Python and Rust backends behind them. Based in Kollam, Kerala."
     />
     <meta name="author" content="Sabith S B" />
-    <meta name="theme-color" content="#07080c" media="(prefers-color-scheme: dark)" />
-    <meta name="theme-color" content="#f7f6f2" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#ffffff" />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Sabith S B — Voice AI &amp; Backend Engineer" />
     <meta
@@ -21,12 +20,6 @@
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <script>
-      // Apply the saved theme before first paint, so there is no flash.
-      try {
-        const saved = localStorage.getItem('theme');
-        const theme = saved || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
-        document.documentElement.dataset.theme = theme;
-      } catch {}
       document.documentElement.classList.add('js');
     </script>
     <script type="module" src="/src/main.ts"></script>
@@ -50,10 +43,6 @@
         </ul>
       </nav>
       <div class="nav-actions">
-        <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch colour theme">
-          <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8 6 18M18 6l1.8-1.8"/></svg>
-          <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11Z"/></svg>
-        </button>
         <a class="btn btn-small" href="#contact">Let’s talk</a>
         <button class="icon-btn menu-btn" type="button" data-menu aria-expanded="false" aria-controls="mobile-menu" aria-label="Open menu">
           <span></span><span></span>
