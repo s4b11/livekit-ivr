@@ -186,131 +186,229 @@
   themeQuery.addEventListener('change', applyTheme);
 
   /* -------------------------------------------------------- aura (WebGL) */
-  var FRAG = [
-    'precision highp float;',
-    'uniform vec2 iResolution;uniform float iTime;',
-    'uniform float uBlur,uScale,uFrequency,uAmplitude,uMix,uSpacing,uColorShift,uVariance,uSmoothing,uMode;',
-    'uniform vec3 uColor;',
-    'const float TAU=6.283185;',
-    'vec2 randFibo(vec2 p){p=fract(p*vec2(443.897,441.423));p+=dot(p,p.yx+19.19);return fract((p.xx+p.yx)*p.xy);}',
-    'vec3 Tonemap(vec3 x){x*=4.0;return x/(1.0+x);}',
-    'float luma(vec3 c){return dot(c,vec3(0.299,0.587,0.114));}',
-    'vec3 rgb2hsv(vec3 c){vec4 K=vec4(0.0,-1.0/3.0,2.0/3.0,-1.0);vec4 p=mix(vec4(c.bg,K.wz),vec4(c.gb,K.xy),step(c.b,c.g));',
-    'vec4 q=mix(vec4(p.xyw,c.r),vec4(c.r,p.yzx),step(p.x,c.r));float d=q.x-min(q.w,q.y);float e=1.0e-10;',
-    'return vec3(abs(q.z+(q.w-q.y)/(6.0*d+e)),d/(q.x+e),q.x);}',
-    'vec3 hsv2rgb(vec3 c){vec4 K=vec4(1.0,2.0/3.0,1.0/3.0,3.0);vec3 p=abs(fract(c.xxx+K.xyz)*6.0-K.www);return c.z*mix(K.xxx,clamp(p-K.xxx,0.0,1.0),c.y);}',
-    'vec2 turb(vec2 pos,float t,float it){mat2 rotation=mat2(0.6,-0.25,0.25,0.9);mat2 layerRotation=mat2(0.6,-0.8,0.8,0.6);',
-    'float frequency=mix(2.0,15.0,uFrequency);float amplitude=uAmplitude;float animTime=t*0.1;',
-    'for(int i=0;i<4;i++){vec2 rp=pos*rotation;vec2 wave=sin(frequency*rp+float(i)*animTime+it);',
-    'pos+=(amplitude/frequency)*rotation[0]*wave;rotation*=layerRotation;amplitude*=mix(1.0,max(wave.x,wave.y),uVariance);frequency*=1.4;}',
-    'return pos;}',
-    'void main(){vec2 fragCoord=gl_FragCoord.xy;vec2 uv=fragCoord/iResolution.xy;vec3 pp=vec3(0.0);vec3 bloom=vec3(0.0);',
-    'float t=iTime*0.5;vec2 pos=uv-0.5;const float IT=36.0;vec2 prevPos=turb(pos,t,-1.0/IT);float spacing=mix(1.0,TAU,uSpacing);',
-    'for(float i=1.0;i<37.0;i++){float iter=i/IT;vec2 st=turb(pos,t,iter*spacing);float d=abs(length(st)-uScale);',
-    'float pd=distance(st,prevPos);prevPos=st;float dynamicBlur=exp2(pd*2.0*1.4426950408889634)-1.0;',
-    'float ds=smoothstep(0.0,uBlur*0.05+max(dynamicBlur*uSmoothing,0.001),d);vec3 color=uColor;',
-    'if(uColorShift>0.01){vec3 hsv=rgb2hsv(color);hsv.x=fract(hsv.x+(1.0-iter)*uColorShift*0.3);color=hsv2rgb(hsv);}',
-    'float invd=1.0/max(d+dynamicBlur,0.001);pp+=(ds-1.0)*color;bloom+=clamp(invd,0.0,250.0)*color;}',
-    'pp*=1.0/IT;vec3 color;',
-    'if(uMode<0.5){color=-pp*1.2;color+=(randFibo(fragCoord).x-0.5)/255.0;color=Tonemap(color);float alpha=luma(color)*uMix;gl_FragColor=vec4(color*uMix,alpha);}',
-    'else{color=-pp;color+=(randFibo(fragCoord).x-0.5)/255.0;float b=length(color);vec3 dir=b>0.0?color/b:color;',
-    'float mb=(b*2.0)/(1.0+b*2.0);color=dir*mb;float gray=dot(color,vec3(0.2,0.5,0.1));color=clamp(mix(vec3(gray),color,3.0),0.0,1.0);',
-    // Drop the faint haze the dither leaves on light backgrounds.
-    'float alpha=clamp((mb-0.04)*1.05,0.0,1.0)*clamp(uMix,1.0,2.0);alpha=min(alpha,1.0);gl_FragColor=vec4(color*alpha,alpha);}}',
+  // A faithful port of LiveKit Agents UI's AgentAudioVisualizerAura: the same shader,
+  // uniforms, renderer setup (no blending, device-pixel-ratio canvas) and per-state
+  // animations, without React.
+  var AURA_SHADER = [
+    'const float TAU = 6.283185;',
+    'vec2 randFibo(vec2 p) { p = fract(p * vec2(443.897, 441.423)); p += dot(p, p.yx + 19.19); return fract((p.xx + p.yx) * p.xy); }',
+    'vec3 Tonemap(vec3 x) { x *= 4.0; return x / (1.0 + x); }',
+    'float luma(vec3 color) { return dot(color, vec3(0.299, 0.587, 0.114)); }',
+    'vec3 rgb2hsv(vec3 c) { vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0); vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));',
+    '  vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r)); float d = q.x - min(q.w, q.y); float e = 1.0e-10;',
+    '  return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x); }',
+    'vec3 hsv2rgb(vec3 c) { vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0); vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www); return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y); }',
+    'float sdCircle(vec2 st, float r) { return length(st) - r; }',
+    'float sdLine(vec2 p, float r) { float halfLen = r * 2.0; vec2 a = vec2(-halfLen, 0.0); vec2 b = vec2(halfLen, 0.0); vec2 pa = p - a; vec2 ba = b - a;',
+    '  float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0); return length(pa - ba * h); }',
+    'float getSdf(vec2 st) { if (uShape == 1.0) return sdCircle(st, uScale); else if (uShape == 2.0) return sdLine(st, uScale); return sdCircle(st, uScale); }',
+    'vec2 turb(vec2 pos, float t, float it) {',
+    '  mat2 rotation = mat2(0.6, -0.25, 0.25, 0.9); mat2 layerRotation = mat2(0.6, -0.8, 0.8, 0.6);',
+    '  float frequency = mix(2.0, 15.0, uFrequency); float amplitude = uAmplitude; float frequencyGrowth = 1.4;',
+    '  float animTime = t * 0.1 * uSpeed;',
+    '  const int LAYERS = 4;',
+    '  for (int i = 0; i < LAYERS; i++) {',
+    '    vec2 rotatedPos = pos * rotation; vec2 wave = sin(frequency * rotatedPos + float(i) * animTime + it);',
+    '    pos += (amplitude / frequency) * rotation[0] * wave;',
+    '    rotation *= layerRotation; amplitude *= mix(1.0, max(wave.x, wave.y), uVariance); frequency *= frequencyGrowth;',
+    '  }',
+    '  return pos;',
+    '}',
+    'const float ITERATIONS = 36.0;',
+    'void mainImage(out vec4 fragColor, in vec2 fragCoord) {',
+    '  vec2 uv = fragCoord / iResolution.xy; vec3 pp = vec3(0.0); vec3 bloom = vec3(0.0); float t = iTime * 0.5; vec2 pos = uv - 0.5;',
+    '  vec2 prevPos = turb(pos, t, 0.0 - 1.0 / ITERATIONS); float spacing = mix(1.0, TAU, uSpacing);',
+    '  for (float i = 1.0; i < ITERATIONS + 1.0; i++) {',
+    '    float iter = i / ITERATIONS; vec2 st = turb(pos, t, iter * spacing); float d = abs(getSdf(st)); float pd = distance(st, prevPos); prevPos = st;',
+    '    float dynamicBlur = exp2(pd * 2.0 * 1.4426950408889634) - 1.0;',
+    '    float ds = smoothstep(0.0, uBlur * 0.05 + max(dynamicBlur * uSmoothing, 0.001), d);',
+    '    vec3 color = uColor;',
+    '    if (uColorShift > 0.01) { vec3 hsv = rgb2hsv(color); hsv.x = fract(hsv.x + (1.0 - iter) * uColorShift * 0.3); color = hsv2rgb(hsv); }',
+    '    float invd = 1.0 / max(d + dynamicBlur, 0.001); pp += (ds - 1.0) * color; bloom += clamp(invd, 0.0, 250.0) * color;',
+    '  }',
+    '  pp *= 1.0 / ITERATIONS;',
+    '  vec3 color;',
+    '  if (uMode < 0.5) {',
+    '    bloom = bloom / (bloom + 2e4); color = (-pp + bloom * 3.0 * uBloom) * 1.2; color += (randFibo(fragCoord).x - 0.5) / 255.0;',
+    '    color = Tonemap(color); float alpha = luma(color) * uMix; fragColor = vec4(color * uMix, alpha);',
+    '  } else {',
+    '    color = -pp; color += (randFibo(fragCoord).x - 0.5) / 255.0;',
+    '    float brightness = length(color); vec3 direction = brightness > 0.0 ? color / brightness : color;',
+    '    float factor = 2.0; float mappedBrightness = (brightness * factor) / (1.0 + brightness * factor); color = direction * mappedBrightness;',
+    '    float gray = dot(color, vec3(0.2, 0.5, 0.1)); float saturationBoost = 3.0; color = mix(vec3(gray), color, saturationBoost);',
+    '    color = clamp(color, 0.0, 1.0); float alpha = mappedBrightness * clamp(uMix, 1.0, 2.0); fragColor = vec4(color, alpha);',
+    '  }',
+    '}',
   ].join('\n');
 
-  // Motion per agent state, as in LiveKit's Agents UI aura.
-  var STATES = {
-    idle: { speed: 10, scale: 0.2, amplitude: 1.2, frequency: 0.4, brightness: [1.0, 1.0] },
-    connecting: { speed: 30, scale: 0.3, amplitude: 0.5, frequency: 1.0, brightness: [0.5, 2.5] },
-    listening: { speed: 20, scale: 0.3, amplitude: 1.0, frequency: 0.7, brightness: [1.5, 2.0] },
-    thinking: { speed: 30, scale: 0.3, amplitude: 0.5, frequency: 1.0, brightness: [0.5, 2.5] },
-    speaking: { speed: 70, scale: 0.3, amplitude: 0.75, frequency: 1.25, brightness: [1.5, 1.5] },
-  };
+  var AURA_UNIFORMS = ['iResolution', 'iTime', 'uSpeed', 'uBlur', 'uScale', 'uShape', 'uFrequency', 'uAmplitude',
+    'uBloom', 'uMix', 'uSpacing', 'uColorShift', 'uVariance', 'uSmoothing', 'uMode', 'uColor'];
 
   function hexToRgb(hex) {
     return [1, 3, 5].map(function (i) { return parseInt(hex.slice(i, i + 2), 16) / 255; });
   }
 
+  // motion's "easeOut" is cubic-bezier(0, 0, 0.58, 1).
+  function easeOut(x) {
+    var lo = 0, hi = 1;
+    for (var i = 0; i < 24; i++) {
+      var tt = (lo + hi) / 2, bx = 3 * (1 - tt) * tt * tt * 0.58 + tt * tt * tt;
+      if (bx < x) lo = tt; else hi = tt;
+    }
+    var t = (lo + hi) / 2;
+    return 3 * (1 - t) * t * t + t * t * t;
+  }
+
+  // One animated number, mirroring the transitions useAgentAudioVisualizerAura uses:
+  // eased tweens, a mirrored brightness pulse, and a spring.
+  function animatedValue(initial) {
+    var v = initial, mode = 'idle', from = 0, to = 0, start = 0, duration = 0, a = 0, b = 0;
+    return {
+      tween: function (target, ms, now) { mode = 'tween'; from = v; to = target; start = now; duration = ms; },
+      // keyframes [lo, hi] with repeatType "mirror": lo -> hi, hi -> lo, forever.
+      pulse: function (lo, hi, ms, now) { mode = 'pulse'; a = lo; b = hi; start = now; duration = ms; },
+      // { type: 'spring', duration: 1.0, bounce: 0.35 }: underdamped, settles in about a second.
+      spring: function (target, now) { mode = 'spring'; from = v; to = target; start = now; },
+      set: function (x) { mode = 'idle'; v = x; },
+      isAnimating: function (now) {
+        if (mode === 'tween') return now - start < duration;
+        if (mode === 'spring') return now - start < 1200;
+        return mode === 'pulse';
+      },
+      step: function (now) {
+        var t;
+        if (mode === 'tween') {
+          t = Math.min(1, (now - start) / duration);
+          v = from + (to - from) * easeOut(t);
+          if (t >= 1) mode = 'idle';
+        } else if (mode === 'pulse') {
+          var cycle = (now - start) / duration, n = Math.floor(cycle), p = cycle - n;
+          v = a + (b - a) * (n % 2 === 0 ? easeOut(p) : easeOut(1 - p));
+        } else if (mode === 'spring') {
+          t = (now - start) / 1000;
+          var zeta = 0.65, w0 = (2 * Math.PI) / 0.95, wd = w0 * Math.sqrt(1 - zeta * zeta);
+          var x = 1 - Math.exp(-zeta * w0 * t) * (Math.cos(wd * t) + ((zeta * w0) / wd) * Math.sin(wd * t));
+          v = from + (to - from) * x;
+          if (t >= 1.2) { v = to; mode = 'idle'; }
+        }
+        return v;
+      },
+    };
+  }
+
   function createAura(cv) {
-    var gl = cv.getContext('webgl', { premultipliedAlpha: true, alpha: true, antialias: false });
+    var gl = cv.getContext('webgl') || cv.getContext('experimental-webgl');
     if (!gl) return null;
     function compile(type, src) {
       var s = gl.createShader(type);
       gl.shaderSource(s, src);
       gl.compileShader(s);
-      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s) || 'shader error');
       return s;
     }
+    var fs = 'precision highp float;\n' +
+      'uniform vec2 iResolution; uniform float iTime;\n' +
+      'uniform float uSpeed, uBlur, uScale, uShape, uFrequency, uAmplitude, uBloom, uMix, uSpacing, uColorShift, uVariance, uSmoothing, uMode;\n' +
+      'uniform vec3 uColor;\n' + AURA_SHADER +
+      '\nvoid main(void) { vec4 color = vec4(0.0); mainImage(color, gl_FragCoord.xy); gl_FragColor = color; }';
     var prog = gl.createProgram();
     try {
-      gl.attachShader(prog, compile(gl.VERTEX_SHADER, 'attribute vec2 p;void main(){gl_Position=vec4(p,0.0,1.0);}'));
-      gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, FRAG));
+      gl.attachShader(prog, compile(gl.VERTEX_SHADER, 'attribute vec3 aVertexPosition; void main(void) { gl_Position = vec4(aVertexPosition, 1.0); }'));
+      gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, fs));
+      gl.linkProgram(prog);
+      if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error('link error');
     } catch {
       return null;
     }
-    gl.linkProgram(prog);
     gl.useProgram(prog);
     gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
-    var loc = gl.getAttribLocation(prog, 'p');
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([1, 1, 0, -1, 1, 0, 1, -1, 0, -1, -1, 0]), gl.STATIC_DRAW);
+    var loc = gl.getAttribLocation(prog, 'aVertexPosition');
     gl.enableVertexAttribArray(loc);
-    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-    gl.enable(gl.BLEND);
-    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    gl.vertexAttribPointer(loc, 3, gl.FLOAT, false, 0, 0);
+    gl.clearColor(0, 0, 0, 1);
     var u = {};
-    ['iResolution', 'iTime', 'uBlur', 'uScale', 'uFrequency', 'uAmplitude', 'uMix', 'uSpacing', 'uColorShift',
-      'uVariance', 'uSmoothing', 'uMode', 'uColor'].forEach(function (n) { u[n] = gl.getUniformLocation(prog, n); });
-    gl.uniform1f(u.uBlur, 1.0);
+    AURA_UNIFORMS.forEach(function (n) { u[n] = gl.getUniformLocation(prog, n); });
+    // Fixed values, as AgentAudioVisualizerAura passes them to AuraShader.
+    gl.uniform1f(u.uSpeed, 1.0); // speed is integrated into iTime below
+    gl.uniform1f(u.uBlur, 0.2);
+    gl.uniform1f(u.uShape, 1.0);
+    gl.uniform1f(u.uBloom, 0.0);
     gl.uniform1f(u.uSpacing, 0.5);
-    gl.uniform1f(u.uColorShift, 0.6);
+    gl.uniform1f(u.uColorShift, 0.05);
     gl.uniform1f(u.uVariance, 0.1);
     gl.uniform1f(u.uSmoothing, 1.0);
     gl.uniform3fv(u.uColor, hexToRgb(config.accent));
 
-    var cur = { speed: 10, scale: 0.2, amplitude: 1.2, frequency: 0.4, brightness: 1.0 };
-    var target = STATES.idle, volume = 0, phase = 0, last = 0, raf = 0, running = false, mode = 0;
+    // useAgentAudioVisualizerAura's starting values.
+    var speed = 10, mode = 0, volume = 0, state = 'idle';
+    var scale = animatedValue(0.2), amplitude = animatedValue(2), frequency = animatedValue(0.5), brightness = animatedValue(1.5);
+    var time = 0, last = 0, raf = 0, running = false;
 
-    function resize() {
-      var dpr = Math.min(devicePixelRatio || 1, 1.5);
-      var w = Math.round(cv.clientWidth * dpr), h = Math.round(cv.clientHeight * dpr);
-      if (w && h && (cv.width !== w || cv.height !== h)) { cv.width = w; cv.height = h; }
-      gl.viewport(0, 0, cv.width, cv.height);
+    function applyState(s, now) {
+      state = s;
+      var TWEEN = 500, PULSE = 350;
+      switch (s) {
+        case 'listening':
+          speed = 20;
+          scale.spring(0.3, now);
+          amplitude.tween(1.0, TWEEN, now);
+          frequency.tween(0.7, TWEEN, now);
+          brightness.pulse(1.5, 2.0, PULSE, now);
+          return;
+        case 'thinking':
+        case 'connecting':
+          speed = 30;
+          scale.tween(0.3, TWEEN, now);
+          amplitude.tween(0.5, TWEEN, now);
+          frequency.tween(1, TWEEN, now);
+          brightness.pulse(0.5, 2.5, PULSE, now);
+          return;
+        case 'speaking':
+          speed = 70;
+          scale.tween(0.3, TWEEN, now);
+          amplitude.tween(0.75, TWEEN, now);
+          frequency.tween(1.25, TWEEN, now);
+          brightness.tween(1.5, TWEEN, now);
+          return;
+        default: // idle, failed, disconnected
+          speed = 10;
+          scale.tween(0.2, TWEEN, now);
+          amplitude.tween(1.2, TWEEN, now);
+          frequency.tween(0.4, TWEEN, now);
+          brightness.tween(1.0, TWEEN, now);
+      }
     }
 
     function frame(now) {
       if (!running) return;
       raf = requestAnimationFrame(frame);
-      var dt = last ? Math.min((now - last) / 1000, 0.1) : 0;
+      var dt = last ? (now - last) / 1000 : 0;
       last = now;
-      // Ease every parameter toward its state target; integrate speed into phase so a
-      // state change never makes the motion jump.
-      var k = 1 - Math.exp(-dt * 6);
-      var lo = target.brightness[0], hi = target.brightness[1];
-      var pulse = lo === hi ? lo : lo + (hi - lo) * (0.5 + 0.5 * Math.sin(now / 1000 * Math.PI / 0.35));
-      var scaleTarget = agentState === 'speaking' ? 0.2 + 0.2 * Math.min(volume * 2.5, 1) : target.scale;
-      cur.speed += (target.speed - cur.speed) * k;
-      cur.scale += (scaleTarget - cur.scale) * (agentState === 'speaking' ? 1 - Math.exp(-dt * 18) : k);
-      cur.amplitude += (target.amplitude - cur.amplitude) * k;
-      cur.frequency += (target.frequency - cur.frequency) * k;
-      cur.brightness += (pulse - cur.brightness) * k;
-      phase += dt * cur.speed * (reducedMotion.matches ? 0.15 : 1);
+      // iTime * uSpeed in the original; integrating keeps the motion continuous
+      // when the speed changes between states.
+      time += dt * speed;
 
-      resize();
-      gl.uniform2f(u.iResolution, cv.width, cv.height);
-      gl.uniform1f(u.iTime, phase);
-      gl.uniform1f(u.uScale, cur.scale);
-      gl.uniform1f(u.uAmplitude, cur.amplitude);
-      gl.uniform1f(u.uFrequency, cur.frequency);
-      gl.uniform1f(u.uMix, cur.brightness);
-      gl.uniform1f(u.uMode, mode);
-      gl.clearColor(0, 0, 0, 0);
+      if (state === 'speaking' && volume > 0 && !scale.isAnimating(now)) scale.set(0.2 + 0.2 * volume);
+
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      var w = Math.floor(cv.clientWidth * dpr), h = Math.floor(cv.clientHeight * dpr);
+      if (w && h && (cv.width !== w || cv.height !== h)) { cv.width = w; cv.height = h; }
+      gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
       gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.uniform2f(u.iResolution, cv.width, cv.height);
+      gl.uniform1f(u.iTime, time);
+      gl.uniform1f(u.uScale, scale.step(now));
+      gl.uniform1f(u.uAmplitude, amplitude.step(now));
+      gl.uniform1f(u.uFrequency, frequency.step(now));
+      gl.uniform1f(u.uMix, brightness.step(now));
+      gl.uniform1f(u.uMode, mode);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }
 
+    applyState('idle', performance.now());
     return {
-      setState: function (s) { target = STATES[s] || STATES.idle; },
+      setState: function (s) { if (s !== state) applyState(s, performance.now()); },
       setVolume: function (v) { volume = v; },
       setTheme: function (t) { mode = t === 'light' ? 1 : 0; },
       play: function () { if (!running) { running = true; last = 0; raf = requestAnimationFrame(frame); } },
@@ -322,28 +420,31 @@
   if (!aura) canvas.style.display = 'none';
 
   /* ---------------------------------------------------- agent voice level */
-  var analyser = null, levels = null, audioCtx = null;
+  // As LiveKit's useTrackVolume: an analyser (fftSize 512, smoothing 0.55,
+  // -100..-80 dB), read 30 times a second as the RMS of the frequency bins.
+  var analyser = null, bins = null, audioCtx = null;
   function watchAgentAudio(track) {
     try {
       audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
       var src = audioCtx.createMediaStreamSource(new MediaStream([track.mediaStreamTrack]));
       analyser = audioCtx.createAnalyser();
+      analyser.minDecibels = -100;
+      analyser.maxDecibels = -80;
       analyser.fftSize = 512;
       analyser.smoothingTimeConstant = 0.55;
       src.connect(analyser);
-      levels = new Uint8Array(analyser.fftSize);
+      bins = new Uint8Array(analyser.frequencyBinCount);
     } catch {
       analyser = null;
     }
   }
-  (function sampleVolume() {
-    requestAnimationFrame(sampleVolume);
-    if (!analyser || !aura || agentState !== 'speaking') return;
-    analyser.getByteTimeDomainData(levels);
+  setInterval(function () {
+    if (!analyser || !aura) return;
+    analyser.getByteFrequencyData(bins);
     var sum = 0;
-    for (var i = 0; i < levels.length; i++) { var x = (levels[i] - 128) / 128; sum += x * x; }
-    aura.setVolume(Math.sqrt(sum / levels.length));
-  })();
+    for (var i = 0; i < bins.length; i++) sum += bins[i] * bins[i];
+    aura.setVolume(Math.sqrt(sum / bins.length) / 255);
+  }, 1000 / 30);
 
   /* ------------------------------------------------------------ ui state */
   var STATE_LABELS = {
