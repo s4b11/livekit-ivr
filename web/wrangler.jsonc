@@ -2,7 +2,7 @@
 // LiveKit tokens, and stores transcripts and messages in D1.
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "sabithsb",
+  "name": "assistant",
   "main": "worker/index.ts",
   "compatibility_date": "2026-10-01",
   "compatibility_flags": ["nodejs_compat"],

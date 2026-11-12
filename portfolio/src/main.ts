@@ -3,7 +3,7 @@ import '@fontsource/instrument-serif/latin-400-italic.css';
 import './styles.css';
 
 /** The Cloudflare Worker that serves the voice assistant's embed widget. */
-const ASSISTANT_ORIGIN = 'https://sabithsb.sabithsb36624.workers.dev';
+const ASSISTANT_ORIGIN = 'https://assistant.sabiii.workers.dev';
 
 declare global {
   interface Window {
