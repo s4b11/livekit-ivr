@@ -40,6 +40,7 @@ flowchart LR
 | `web/src/` | React voice UI (Vite, Tailwind, shadcn, LiveKit Agents UI). |
 | `web/worker/` | Cloudflare Worker: LiveKit tokens, plus transcript and message storage in D1. |
 | `web/public/embed/` | The one-tag embed widget and its demo page. |
+| `portfolio/` | My portfolio site (static, Cloudflare Pages), which embeds the assistant. |
 | `contract/` | The payload the agent sends the Worker, tested from both sides. |
 | `.github/workflows/` | CI on every push and PR; deploy to Cloudflare and LiveKit Cloud from `main`. |
 

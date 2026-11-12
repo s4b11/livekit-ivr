@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Sabith S B — Voice AI &amp; Backend Engineer</title>
+    <meta
+      name="description"
+      content="Sabith S B builds real-time voice AI agents, LLM retrieval tools, and the Python and Rust backends behind them. Based in Kollam, Kerala."
+    />
+    <meta name="author" content="Sabith S B" />
+    <meta name="theme-color" content="#07080c" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f7f6f2" media="(prefers-color-scheme: light)" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Sabith S B — Voice AI &amp; Backend Engineer" />
+    <meta
+      property="og:description"
+      content="Real-time voice agents, grounded retrieval, and the backends behind them."
+    />
+    <meta property="og:image" content="/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <script>
+      // Apply the saved theme before first paint, so there is no flash.
+      try {
+        const saved = localStorage.getItem('theme');
+        const theme = saved || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+        document.documentElement.dataset.theme = theme;
+      } catch {}
+      document.documentElement.classList.add('js');
+    </script>
+    <script type="module" src="/src/main.ts"></script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <div class="progress" aria-hidden="true"></div>
+
+    <header class="nav" data-nav>
+      <a class="brand" href="#top" aria-label="Sabith S B, home">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>Sabith<span class="muted"> S B</span></span>
+      </a>
+      <nav aria-label="Sections">
+        <ul class="nav-links" data-nav-links>
+          <li><a href="#work">Work</a></li>
+          <li><a href="#experience">Experience</a></li>
+          <li><a href="#about">About</a></li>
+          <li><a href="#toolkit">Toolkit</a></li>
+          <li><a href="#writing">Writing</a></li>
+        </ul>
+      </nav>
+      <div class="nav-actions">
+        <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch colour theme">
+          <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8 6 18M18 6l1.8-1.8"/></svg>
+          <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11Z"/></svg>
+        </button>
+        <a class="btn btn-small" href="#contact">Let’s talk</a>
+        <button class="icon-btn menu-btn" type="button" data-menu aria-expanded="false" aria-controls="mobile-menu" aria-label="Open menu">
+          <span></span><span></span>
+        </button>
+      </div>
+    </header>
+
+    <div class="mobile-menu" id="mobile-menu" data-mobile-menu hidden>
+      <ul>
+        <li><a href="#work">Work</a></li>
+        <li><a href="#experience">Experience</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#toolkit">Toolkit</a></li>
+        <li><a href="#writing">Writing</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </div>
+
+    <main id="main">
+      <!-- HERO -->
+      <section class="hero" id="top" data-hero>
+        <div class="orb" aria-hidden="true">
+          <span class="orb-a"></span><span class="orb-b"></span><span class="orb-c"></span>
+        </div>
+        <div class="grid-bg" aria-hidden="true"></div>
+
+        <div class="wrap hero-inner">
+          <p class="eyebrow reveal" style="--i: 0">
+            <span class="dot" aria-hidden="true"></span>
+            Open to selected freelance projects · Kollam, Kerala
+          </p>
+          <h1 class="hero-title" data-split>
+            I build voice agents that <em>listen</em>, retrieval that <em>cites</em>, and backends that <em>hold</em>.
+          </h1>
+          <p class="hero-lede reveal" style="--i: 6">
+            I’m <strong>Sabith S B</strong>, a software developer working on real-time voice AI at IoTides —
+            turn-taking, interruptions, latency you can measure — and on small, readable open-source
+            tools in Python and Rust.
+          </p>
+          <div class="hero-cta reveal" style="--i: 7">
+            <button class="btn btn-primary magnetic" type="button" data-talk>
+              <span class="pulse" aria-hidden="true"></span>
+              Talk to my AI assistant
+            </button>
+            <a class="btn btn-ghost magnetic" href="#work">
+              See selected work
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6"/></svg>
+            </a>
+          </div>
+          <dl class="hero-stats reveal" style="--i: 8">
+            <div><dt>Reply latency cut</dt><dd><span data-count="7" data-to="3">7</span>s → 3s</dd></div>
+            <div><dt>Voice agents shipped</dt><dd>Web + phone</dd></div>
+            <div><dt>Daily languages</dt><dd>Python · Rust</dd></div>
+          </dl>
+        </div>
+
+        <a class="scroll-cue" href="#work" aria-label="Scroll to work">
+          <span></span>
+        </a>
+      </section>
+
+      <!-- MARQUEE -->
+      <div class="marquee" aria-hidden="true">
+        <div class="marquee-track">
+          <span>LiveKit Agents</span><span>Gemini Live</span><span>SIP telephony</span><span>WebRTC</span>
+          <span>FastAPI</span><span>Rust</span><span>RAG</span><span>BM25 + hybrid</span><span>MCP</span>
+          <span>Cloudflare Workers</span><span>PostgreSQL</span><span>WebAssembly</span>
+          <span>LiveKit Agents</span><span>Gemini Live</span><span>SIP telephony</span><span>WebRTC</span>
+          <span>FastAPI</span><span>Rust</span><span>RAG</span><span>BM25 + hybrid</span><span>MCP</span>
+          <span>Cloudflare Workers</span><span>PostgreSQL</span><span>WebAssembly</span>
+        </div>
+      </div>
+
+      <!-- WORK -->
+      <section class="section" id="work">
+        <div class="wrap">
+          <header class="section-head">
+            <p class="kicker reveal">01 — Selected work</p>
+            <h2 class="reveal" style="--i: 1">Ideas, built into <em>working things.</em></h2>
+            <p class="section-lede reveal" style="--i: 2">
+              Each project says what state it’s in and what I personally built.
+            </p>
+            <div class="filters reveal" style="--i: 3" role="group" aria-label="Filter projects">
+              <button type="button" class="chip is-active" data-filter="all" aria-pressed="true">All</button>
+              <button type="button" class="chip" data-filter="voice" aria-pressed="false">Voice AI</button>
+              <button type="button" class="chip" data-filter="retrieval" aria-pressed="false">Retrieval</button>
+              <button type="button" class="chip" data-filter="systems" aria-pressed="false">Systems</button>
+            </div>
+          </header>
+
+          <div class="projects" data-projects>
+            <article class="card card-feature reveal" data-tags="voice systems" style="--i: 0">
+              <div class="card-glow" aria-hidden="true"></div>
+              <div class="card-top">
+                <span class="status status-live">Live · Open source</span>
+                <span class="year">2026</span>
+              </div>
+              <h3>Personal AI Voice Assistant</h3>
+              <p>
+                A speech-to-speech agent that answers my calls in Indian English, introduces my work, and
+                takes messages. One agent, reachable by phone number, a React voice UI, or the one-tag widget
+                on this very page.
+              </p>
+              <ul class="bullets">
+                <li>Cloudflare Worker mints LiveKit tokens and stores transcripts in D1</li>
+                <li>Agent ↔ Worker payload contract-tested from Python and TypeScript</li>
+                <li>Deploys gated by a live Gemini session check in CI</li>
+              </ul>
+              <p class="stack">LiveKit Agents · Gemini Live · Cloudflare Workers + D1 · React · GitHub Actions</p>
+              <div class="card-links">
+                <button type="button" class="link-btn" data-talk>Try it now →</button>
+                <a href="https://github.com/s4b11/livekit-ivr" target="_blank" rel="noopener">Source ↗</a>
+              </div>
+            </article>
+
+            <article class="card reveal" data-tags="retrieval" style="--i: 1">
+              <div class="card-glow" aria-hidden="true"></div>
+              <div class="card-top">
+                <span class="status status-live">Live demo · Open source</span>
+                <span class="year">2026</span>
+              </div>
+              <h3>OKFBench Chat</h3>
+              <p>
+                Ask one question three ways — linked concept pages (Open Knowledge Format), BM25 keyword
+                search, or a hybrid — and inspect the cited answer, sources, timing, and token use.
+              </p>
+              <p class="mine">My part: solo build — retrieval, FastAPI backend, front end, tests, deploy.</p>
+              <p class="stack">Python · FastAPI · BM25 · PostgreSQL</p>
+              <div class="card-links">
+                <a href="https://okfbench-chat.onrender.com/" target="_blank" rel="noopener">Live demo ↗</a>
+                <a href="https://github.com/s4b11/okfbench" target="_blank" rel="noopener">Source ↗</a>
+              </div>
+            </article>
+
+            <article class="card reveal" data-tags="voice" style="--i: 2">
+              <div class="card-glow" aria-hidden="true"></div>
+              <div class="card-top">
+                <span class="status status-prod">In production · IoTides</span>
+                <span class="year">2025 —</span>
+              </div>
+              <h3>AI Interview Platform &amp; ATS</h3>
+              <p>
+                An AI-led hiring pipeline: résumé and JD parsing, a real-time voice interview agent, and
+                structured reports that shorten a recruiter’s review.
+              </p>
+              <p class="mine">
+                My part: R&amp;D on the real-time interview agent — conversation quality, per-turn latency
+                instrumentation (median ~7s → ~3s), and session reliability.
+              </p>
+              <p class="stack">Python · FastAPI · WebRTC · STT/TTS · LLMs</p>
+              <div class="card-links"><span class="muted">Proprietary</span></div>
+            </article>
+
+            <article class="card reveal" data-tags="systems" style="--i: 3">
+              <div class="card-glow" aria-hidden="true"></div>
+              <div class="card-top">
+                <span class="status status-live">Open source · Web + Android</span>
+                <span class="year">2026</span>
+              </div>
+              <h3>Utility</h3>
+              <p>
+                A private productivity workspace — tasks, calendar, notes, an encrypted wallet, a
+                Gemini-matched job feed, and an AI assistant that only changes data with approval.
+              </p>
+              <p class="mine">
+                One Rust WebAssembly component serves backend and frontend; GitHub Actions ships the web
+                build and a signed Android APK.
+              </p>
+              <p class="stack">Rust · WebAssembly · Fermyon Spin · SQLite · React · Tauri 2</p>
+              <div class="card-links">
+                <a href="https://lnkd.in/p/dYVYyrnk" target="_blank" rel="noopener">Walkthrough ↗</a>
+              </div>
+            </article>
+
+            <article class="card reveal" data-tags="voice" style="--i: 4">
+              <div class="card-glow" aria-hidden="true"></div>
+              <div class="card-top">
+                <span class="status status-poc">Proof of concept · IoTides</span>
+                <span class="year">2026</span>
+              </div>
+              <h3>Malayalam Phone Reception Agent</h3>
+              <p>
+                A receptionist on a real phone number that spoke only Malayalam, took messages, and stored
+                every transcript through FastAPI and PostgreSQL — the starting point of my assistant.
+              </p>
+              <p class="stack">LiveKit SIP · Gemini Live · FastAPI · PostgreSQL</p>
+              <div class="card-links"><span class="muted">Evolved into the assistant above</span></div>
+            </article>
+
+            <article class="card reveal" data-tags="systems" style="--i: 5">
+              <div class="card-glow" aria-hidden="true"></div>
+              <div class="card-top">
+                <span class="status status-past">Internship · VCNR</span>
+                <span class="year">2025</span>
+              </div>
+              <h3>Warehouse Management — Masters module</h3>
+              <p>
+                The ASP.NET Core backend for the Masters module of an enterprise WMS during a
+                legacy-to-modern migration, plus workflow diagrams for the whole system.
+              </p>
+              <p class="stack">ASP.NET Core · C# · SQL Server</p>
+            </article>
+
+            <article class="card reveal" data-tags="systems" style="--i: 6">
+              <div class="card-glow" aria-hidden="true"></div>
+              <div class="card-top">
+                <span class="status status-past">Academic prototype · Team of 3</span>
+                <span class="year">2025</span>
+              </div>
+              <h3>Infant Guard</h3>
+              <p>
+                A newborn-care web app prototype with role-based dashboards, vaccination scheduling, alerts,
+                and doctor-approved nutrition plans. Never used with real patients.
+              </p>
+              <p class="stack">Python · Flask · PostgreSQL</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- EXPERIENCE -->
+      <section class="section section-alt" id="experience">
+        <div class="wrap">
+          <header class="section-head">
+            <p class="kicker reveal">02 — Career</p>
+            <h2 class="reveal" style="--i: 1">From warehouses to <em>voices.</em></h2>
+          </header>
+
+          <ol class="timeline" data-timeline>
+            <li class="reveal">
+              <div class="tl-when">Nov 2025 — Present</div>
+              <div class="tl-body">
+                <h3>Software Developer <span class="at">· IoTides Pvt Ltd, Kollam</span></h3>
+                <ul>
+                  <li>R&amp;D on the real-time voice agent in the AI Interview Platform and ATS, re-platformed onto purpose-built real-time infrastructure.</li>
+                  <li>Instrumented every conversation turn stage by stage, which located where reply latency came from and guided fixes that took median response time from about 7s to about 3s.</li>
+                  <li>GenAI backends: RAG pipelines, multi-agent tool calling, MCP tooling, guardrails, and LLM evaluation loops.</li>
+                  <li>Took IVR and calling-agent features from proof of concept to production with Gemini Live, SIP, and LiveKit.</li>
+                </ul>
+              </div>
+            </li>
+            <li class="reveal">
+              <div class="tl-when">May — Oct 2025</div>
+              <div class="tl-body">
+                <h3>Software Developer Intern (.NET) <span class="at">· VCNR Technologies, Bangalore</span></h3>
+                <ul>
+                  <li>Built the ASP.NET Core backend for the Masters module of an enterprise WMS during a legacy-to-modern migration.</li>
+                  <li>Mapped Inward, Warehouse and Outward flows into diagrams for the whole system and each module.</li>
+                </ul>
+              </div>
+            </li>
+            <li class="reveal">
+              <div class="tl-when">2022 — 2025</div>
+              <div class="tl-body">
+                <h3>Bachelor of Computer Applications <span class="at">· UIT Kottarakkara, University of Kerala</span></h3>
+                <ul>
+                  <li>CGPA 8.25 / 10. Major project: Infant Guard. NSS volunteer leader, 2023 — 2025.</li>
+                </ul>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- ABOUT -->
+      <section class="section" id="about">
+        <div class="wrap about">
+          <div>
+            <p class="kicker reveal">03 — About</p>
+            <h2 class="reveal" style="--i: 1">Curious by nature. <em>An engineer by practice.</em></h2>
+          </div>
+          <div class="about-body">
+            <p class="reveal" style="--i: 2">
+              Most of my work is conversational voice AI: making an agent take turns naturally, hear domain
+              terms correctly, and answer without long silences — then measuring it, so problems show up in
+              data instead of in a live conversation.
+            </p>
+            <p class="reveal" style="--i: 3">
+              Outside work I build small, readable open-source tools that test one idea end to end, like how
+              the structure of knowledge changes an LLM’s answer. I like useful questions, tidy systems, and
+              understanding <em>why</em> something works.
+            </p>
+            <div class="pillars">
+              <div class="pillar reveal" style="--i: 4">
+                <span class="pillar-n">A</span>
+                <h3>Conversational voice AI</h3>
+                <p>Real-time agents over web and phone: turn-taking, barge-in, transcripts, per-turn latency.</p>
+              </div>
+              <div class="pillar reveal" style="--i: 5">
+                <span class="pillar-n">B</span>
+                <h3>Grounded retrieval</h3>
+                <p>RAG that cites its sources: knowledge structure, keyword and hybrid search, prompts that refuse to invent.</p>
+              </div>
+              <div class="pillar reveal" style="--i: 6">
+                <span class="pillar-n">C</span>
+                <h3>Backend systems</h3>
+                <p>Python (FastAPI, Flask), Rust, and ASP.NET Core services — tested and deployable.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TOOLKIT -->
+      <section class="section section-alt" id="toolkit">
+        <div class="wrap">
+          <header class="section-head">
+            <p class="kicker reveal">04 — Toolkit</p>
+            <h2 class="reveal" style="--i: 1">Chosen for the problem. <em>Grouped by use.</em></h2>
+          </header>
+          <div class="toolkit">
+            <div class="tool reveal" style="--i: 0"><h3>Core</h3><p>Python · Rust · TypeScript · SQL</p></div>
+            <div class="tool reveal" style="--i: 1"><h3>Voice &amp; real-time</h3><p>LiveKit Agents · SIP · WebRTC · Gemini Live · STT / TTS · Silero VAD</p></div>
+            <div class="tool reveal" style="--i: 2"><h3>AI &amp; retrieval</h3><p>RAG · BM25 + hybrid · embeddings · tool calling · MCP · guardrails · LLM evals</p></div>
+            <div class="tool reveal" style="--i: 3"><h3>Backend</h3><p>FastAPI · Flask · SQLAlchemy · Axum · Rocket · ASP.NET Core · Hono</p></div>
+            <div class="tool reveal" style="--i: 4"><h3>Data</h3><p>PostgreSQL · SQLite · Cloudflare D1 · SQL Server · Redis · Kafka</p></div>
+            <div class="tool reveal" style="--i: 5"><h3>Ship &amp; run</h3><p>Docker · GitHub Actions · Cloudflare · LiveKit Cloud · Fermyon Spin · AWS · GCP</p></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- WRITING -->
+      <section class="section" id="writing">
+        <div class="wrap">
+          <header class="section-head">
+            <p class="kicker reveal">05 — Writing</p>
+            <h2 class="reveal" style="--i: 1">Notes from <em>building.</em></h2>
+          </header>
+          <div class="posts">
+            <a class="post reveal" style="--i: 0" href="https://lnkd.in/p/dUuaqhpx" target="_blank" rel="noopener">
+              <span class="post-meta">LinkedIn · RAG · Knowledge engineering</span>
+              <h3>How does the way we organize knowledge change an AI answer?</h3>
+              <p>Why I built OKFBench Chat to compare linked concepts, BM25, and hybrid retrieval side by side — with sources, timing, and tokens in plain sight.</p>
+              <span class="post-cta">Read the post ↗</span>
+            </a>
+            <a class="post reveal" style="--i: 1" href="https://lnkd.in/p/dYVYyrnk" target="_blank" rel="noopener">
+              <span class="post-meta">LinkedIn · Rust · WebAssembly</span>
+              <h3>I got tired of switching apps, so I built my own.</h3>
+              <p>Utility: one private workspace on web and Android, from a single Rust WebAssembly component — and the CI/CD that ships it.</p>
+              <span class="post-cta">Read the post ↗</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- CONTACT -->
+      <section class="section contact" id="contact">
+        <div class="orb orb-soft" aria-hidden="true">
+          <span class="orb-a"></span><span class="orb-b"></span>
+        </div>
+        <div class="wrap contact-inner">
+          <p class="kicker reveal">06 — Contact</p>
+          <h2 class="contact-title reveal" style="--i: 1">A good idea starts with a <em>conversation.</em></h2>
+          <p class="section-lede reveal" style="--i: 2">
+            I take on selected freelance projects alongside my role at IoTides — voice AI agents, RAG and LLM
+            tools, and Python or Rust backends. Email is the fastest way to reach me. Or just talk to my
+            assistant — it takes messages.
+          </p>
+          <div class="contact-actions reveal" style="--i: 3">
+            <button class="btn btn-primary btn-big magnetic" type="button" data-copy="saabith.sb@gmail.com">
+              <span data-copy-label>saabith.sb@gmail.com</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>
+            </button>
+            <button class="btn btn-ghost btn-big magnetic" type="button" data-talk>Talk to my assistant</button>
+          </div>
+          <ul class="socials reveal" style="--i: 4">
+            <li><a href="https://www.linkedin.com/in/s4b11" target="_blank" rel="noopener">LinkedIn ↗</a></li>
+            <li><a href="https://github.com/s4b11" target="_blank" rel="noopener">GitHub ↗</a></li>
+            <li><a href="mailto:saabith.sb@gmail.com">Email ↗</a></li>
+          </ul>
+          <p class="availability reveal" style="--i: 5">
+            Kollam, Kerala, India · IST (UTC+5:30) · Remote, or on-site in Kerala
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="wrap footer-inner">
+        <span>© <span data-year>2026</span> Sabith S B</span>
+        <span class="muted">Hand-built, no framework. Voice by LiveKit + Gemini.</span>
+        <a href="#top">Back to top ↑</a>
+      </div>
+    </footer>
+
+    <div class="toast" role="status" aria-live="polite" data-toast></div>
+  </body>
+</html>
