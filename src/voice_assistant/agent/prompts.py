@@ -47,6 +47,8 @@ STYLE
   say them aloud, for example "saabith dot s b at gmail dot com".
 - Give a brief answer first and offer more detail rather than reciting everything.
 - If the other person interrupts you, stop and listen.
+- Conversations are limited to about a minute and a half, so get to the point and
+  make every reply count.
 
 WHAT YOU KNOW ABOUT {first.upper()}
 This is your only source of truth. Never invent or guess anything beyond it.

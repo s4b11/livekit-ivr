@@ -30,10 +30,11 @@ worker serves every channel.
 | `GET /` | public | The React voice UI |
 | `GET /embed/embed.js`, `GET /embed/` | public | The widget and its demo page |
 | `GET /health` | public | Liveness and database connectivity |
-| `POST /api/v1/token` | public | Mint a LiveKit token that starts a web session |
+| `POST /api/v1/token` | public | Mint a LiveKit token that starts a web session (daily limit per IP) |
 | `POST /api/v1/calls/ingest` | private | Store a finished conversation and transcript |
 | `GET /api/v1/calls`, `GET /api/v1/calls/{id}` | private | Read stored conversations |
 | `POST /api/v1/messages`, `GET /api/v1/messages` | private | Store and read messages |
+| `POST /api/v1/sessions/claim` | private | Count a phone call against the caller's daily limit |
 
 Private endpoints require `Authorization: Bearer $BACKEND_API_KEY`. They fail
 closed: if the Worker has no key configured they return 503 rather than serve
@@ -56,6 +57,17 @@ never by the client. The client connects with the token and the agent joins.
 In both cases the agent waits for the participant, starts the session, and
 speaks first.
 
+## Limits (anti-spam)
+
+| Limit | Default | Enforced by | Setting |
+| --- | --- | --- | --- |
+| Conversation length | 90 seconds | The agent: it says goodbye about 12 seconds before the limit, then ends the room. Applies to phone and web alike. The widget shows a countdown and also disconnects itself just after the limit. | `MAX_SESSION_SECONDS` (agent), `MAX_SESSION_SECONDS` in `web/wrangler.jsonc` (widget countdown) |
+| Conversations per day | 2 | Web: the Worker, per visitor IP, when it issues a token (`429` after the limit). Phone: the agent, per caller number, via `/api/v1/sessions/claim` as the call connects. | `SESSIONS_PER_DAY` in `web/wrangler.jsonc` |
+
+Days are UTC. IP addresses and phone numbers are stored only as SHA-256 hashes, in
+`session_quota`, and rows older than two days are deleted automatically. If the
+storage API is unreachable, phone calls are allowed rather than refused.
+
 ## Data model
 
 Defined in `web/migrations/`.
@@ -63,6 +75,7 @@ Defined in `web/migrations/`.
 - `call_sessions` - one row per conversation: channel (`phone` or `web`), caller,
   timing, and the raw session report.
 - `transcript_items` - ordered turns, with a flag for turns the caller interrupted.
+- `session_quota` - daily conversation counts per hashed IP or caller number.
 - `caller_messages` - messages taken by `take_message`. They are written during
   the conversation and linked to the `call_sessions` row when it ends.
 

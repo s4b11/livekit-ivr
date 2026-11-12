@@ -24,7 +24,12 @@
   "vars": {
     "AGENT_NAME": "sabith-assistant",
     "WEB_ROOM_PREFIX": "web-",
-    "TOKEN_TTL_MINUTES": "10",
+    "TOKEN_TTL_MINUTES": "3",
+    // Anti-spam: conversations per visitor IP (web) or caller (phone) per UTC day.
+    "SESSIONS_PER_DAY": "2",
+    // Shown by the widget as a countdown. The agent enforces the limit itself
+    // (MAX_SESSION_SECONDS in the agent's settings); keep the two in step.
+    "MAX_SESSION_SECONDS": "90",
     "EMBED_ALLOWED_ORIGINS": "*"
   },
   "observability": { "enabled": true }

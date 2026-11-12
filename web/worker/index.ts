@@ -4,6 +4,7 @@
  * Public (called from browsers):
  *   GET  /health                liveness + database connectivity
  *   POST /api/v1/token          mint a LiveKit token that starts a web session
+ *                               (SESSIONS_PER_DAY per visitor IP per UTC day)
  *
  * Private (called by the agent; `Authorization: Bearer $BACKEND_API_KEY`):
  *   POST /api/v1/calls/ingest   store a finished conversation + transcript
@@ -11,6 +12,7 @@
  *   GET  /api/v1/calls/:id      conversation detail incl. transcript
  *   POST /api/v1/messages       store a message taken mid-conversation
  *   GET  /api/v1/messages       list messages
+ *   POST /api/v1/sessions/claim count a phone call against the caller's daily allowance
  *
  * Everything else is a static asset: the React voice UI and the embed widget.
  */
@@ -19,7 +21,13 @@ import { cors } from 'hono/cors';
 import type { ZodType } from 'zod';
 
 import * as db from './db';
-import { callerMessageSchema, callIngestSchema, tokenRequestSchema } from './schemas';
+import { claimSession, hashKey, sessionsPerDay } from './quota';
+import {
+  callerMessageSchema,
+  callIngestSchema,
+  sessionClaimSchema,
+  tokenRequestSchema,
+} from './schemas';
 import { createEmbedSession, livekitConfigured } from './token';
 
 type AppContext = Context<{ Bindings: Env }>;
@@ -87,8 +95,35 @@ app.post('/api/v1/token', async (c) => {
   }
   const body = await parseBody(c, tokenRequestSchema);
   if (body.error) return body.error;
-  return c.json(await createEmbedSession(c.env, body.data.participant_name), 201);
+
+  const ip = c.req.header('cf-connecting-ip') ?? 'unknown';
+  const quota = await claimSession(c.env.DB, `ip:${await hashKey(ip)}`, sessionsPerDay(c.env));
+  if (!quota.allowed) {
+    return c.json(
+      {
+        detail: `You've used today's ${quota.limit} conversations with the assistant. Please come back tomorrow, or email Sabith directly.`,
+        limit: quota.limit,
+      },
+      429,
+      { 'Retry-After': String(secondsUntilUtcMidnight()) },
+    );
+  }
+
+  const session = await createEmbedSession(c.env, body.data.participant_name);
+  return c.json(
+    {
+      ...session,
+      max_duration_seconds: Number(c.env.MAX_SESSION_SECONDS) || 90,
+      sessions_remaining_today: quota.limit - quota.count,
+    },
+    201,
+  );
 });
+
+function secondsUntilUtcMidnight(now = new Date()): number {
+  const midnight = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
+  return Math.ceil((midnight - now.getTime()) / 1000);
+}
 
 // --- Private endpoints -------------------------------------------------------
 
@@ -131,6 +166,17 @@ privateApi.post('/messages', async (c) => {
 privateApi.get('/messages', async (c) =>
   c.json(await db.listMessages(c.env.DB, Number(c.req.query('limit') ?? 100))),
 );
+
+privateApi.post('/sessions/claim', async (c) => {
+  const body = await parseBody(c, sessionClaimSchema);
+  if (body.error) return body.error;
+  const quota = await claimSession(
+    c.env.DB,
+    `phone:${await hashKey(body.data.caller)}`,
+    sessionsPerDay(c.env),
+  );
+  return c.json(quota);
+});
 
 app.route('/api/v1', privateApi);
 app.all('/api/*', (c) => c.json({ detail: 'not found' }, 404));

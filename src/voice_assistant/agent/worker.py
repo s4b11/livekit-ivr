@@ -10,6 +10,7 @@ conversation the transcript is posted to the storage API (the Cloudflare Worker
 in web/), when one is configured.
 """
 
+import asyncio
 import json
 import logging
 import pathlib
@@ -20,10 +21,20 @@ from dotenv import load_dotenv
 load_dotenv(".env.local")
 load_dotenv(".env")
 
-from livekit import agents, rtc  # noqa: E402
+from livekit import (  # noqa: E402
+    agents,
+    api,  # noqa: E402
+    rtc,
+)
 from livekit.agents import AgentServer, AgentSession, JobContext  # noqa: E402
 
 from voice_assistant.agent.assistant import PersonalAssistant, backend_headers  # noqa: E402
+from voice_assistant.agent.limits import (  # noqa: E402
+    LIMIT_REACHED_INSTRUCTIONS,
+    WRAP_UP_INSTRUCTIONS,
+    claim_phone_session,
+    enforce_time_limit,
+)
 from voice_assistant.agent.prompts import build_greeting_instructions  # noqa: E402
 from voice_assistant.agent.realtime import build_realtime_model  # noqa: E402
 from voice_assistant.agent.transcript import build_ingest_payload  # noqa: E402
@@ -103,8 +114,44 @@ async def entrypoint(ctx: JobContext) -> None:
     ctx.proc.userdata["call_meta"] = meta
     logger.info("conversation started", extra={"participant": participant.identity, **meta})
 
+    async def end_session() -> None:
+        try:
+            await ctx.api.room.delete_room(api.DeleteRoomRequest(room=ctx.room.name))
+        except Exception:
+            logger.exception("could not end the room %s", ctx.room.name)
+
+    async def speak(instructions: str) -> None:
+        await session.generate_reply(instructions=instructions).wait_for_playout()
+
     session = AgentSession(llm=build_realtime_model(settings))
     await session.start(room=ctx.room, agent=PersonalAssistant())
+
+    # Phone callers get the same daily allowance web visitors get from the Worker.
+    if meta["channel"] == "phone":
+        claim = await claim_phone_session(settings, meta["caller_number"])
+        if not claim.allowed:
+            logger.info("daily limit reached for caller", extra={"count": claim.count})
+            try:
+                await asyncio.wait_for(speak(LIMIT_REACHED_INSTRUCTIONS), timeout=20)
+            finally:
+                await end_session()
+            return
+
+    # Every conversation is capped; the agent says goodbye just before the limit.
+    limiter = asyncio.create_task(
+        enforce_time_limit(
+            max_seconds=settings.max_session_seconds,
+            wrap_up_seconds=settings.session_wrap_up_seconds,
+            say_goodbye=lambda: speak(WRAP_UP_INSTRUCTIONS),
+            end_session=end_session,
+        )
+    )
+
+    async def stop_limiter() -> None:
+        limiter.cancel()
+
+    ctx.add_shutdown_callback(stop_limiter)
+
     await session.generate_reply(instructions=build_greeting_instructions())
 
 

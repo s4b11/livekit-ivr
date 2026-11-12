@@ -51,7 +51,7 @@
     mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',
     micOff:
       '<path d="M15 9.3V6a3 3 0 0 0-5.7-1.3M9 9v2a3 3 0 0 0 4.6 2.5M5 11a7 7 0 0 0 11.3 5.5M19 11a7 7 0 0 1-.4 2.3M12 18v3M3 3l18 18"/>',
-    end: '<path d="M10.7 13.3a13 13 0 0 1-2.4-3.2l1.7-1.7a1 1 0 0 0 .2-1.1L9 4.6A1 1 0 0 0 7.9 4H5a1 1 0 0 0-1 1.1A17 17 0 0 0 9 15.6M13.4 16.5a17 17 0 0 0 5.5 2.5 1 1 0 0 0 1.1-1v-2.9a1 1 0 0 0-.6-.9l-2.7-1a1 1 0 0 0-1.1.2l-1 1M3 3l18 18"/>',
+    end: '<path transform="rotate(135 12 12)" d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z"/>',
     send: '<path d="m5 12 14-7-5 15-2.5-6.5L5 12Z"/>',
   };
   function icon(name) {
@@ -107,10 +107,10 @@
 
     /* aura stage: large before a chat starts, compact once messages arrive */
     '.stage{position:relative;height:248px;flex:none;overflow:hidden;transition:height .5s var(--ease)}',
-    '.has-messages .stage{height:132px}',
+    '.has-messages .stage{height:150px}',
     // Square canvas centred in the stage, so the aura is never stretched as the stage resizes.
-    'canvas{position:absolute;top:0;left:50%;height:100%;width:auto;aspect-ratio:1;transform:translateX(-50%);display:block}',
-    '.state{position:absolute;bottom:8px;left:0;right:0;text-align:center;color:var(--fg-2);font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;transition:opacity .3s}',
+    'canvas{position:absolute;top:0;left:50%;height:calc(100% - 24px);width:auto;aspect-ratio:1;transform:translateX(-50%);display:block}',
+    '.state{position:absolute;bottom:4px;left:0;right:0;text-align:center;color:var(--fg-2);font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;transition:opacity .3s}',
 
     '.log{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:4px 16px 12px;display:flex;flex-direction:column;gap:8px;scrollbar-width:thin}',
     '.msg{max-width:85%;padding:9px 13px;border-radius:18px;background:var(--bubble);white-space:pre-wrap;overflow-wrap:anywhere;animation:rise .35s var(--ease) both}',
@@ -134,8 +134,9 @@
     '.round{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;flex:none;background:var(--bubble);color:var(--fg);transition:background-color .25s,color .25s,transform .25s var(--ease)}',
     '.round:active{transform:scale(.92)}',
     '.mic[aria-pressed=true]{background:rgba(239,68,68,.14);color:#ef4444}',
-    '.end{background:#ef4444;color:#fff}',
+    '.end{width:auto;padding:0 16px 0 13px;gap:6px;display:flex;align-items:center;border-radius:999px;background:#ef4444;color:#fff;font-weight:600;font-size:14px}',
     '.end:hover{background:#dc2626}',
+    '.end svg{width:18px;height:18px}',
 
     '@media (max-width:480px){:host{bottom:12px;' + side + ':12px;' + otherSide + ':12px}',
     '.panel{width:100%;height:min(640px,calc(100dvh - 88px))}}',
@@ -159,7 +160,7 @@
     '<label class="field"><input type="text" placeholder="Type a message…" aria-label="Message" maxlength="500">' +
     '<button class="send" type="button" aria-label="Send" disabled>' + icon('send') + '</button></label>' +
     '<button class="round mic" type="button" aria-pressed="false" aria-label="Mute microphone" title="Mute microphone">' + icon('mic') + '</button>' +
-    '<button class="round end" type="button" aria-label="End conversation" title="End conversation">' + icon('end') + '</button>' +
+    '<button class="round end" type="button" title="End conversation">' + icon('end') + '<span>End</span></button>' +
     '</div></footer></section>' +
     '<button class="launcher" type="button" aria-expanded="false">' +
     '<span class="dot" aria-hidden="true"></span><span class="label">Talk to my AI assistant</span>' +
@@ -468,8 +469,27 @@
   }
   function note(text) { return addLine(text, 'note'); }
 
+  // The agent ends every conversation at its time limit; the widget shows the time
+  // left, and disconnects itself shortly after the limit as a safety net.
+  var deadline = 0, ticker = 0, endedByLimit = false;
+  function fmt(sec) { return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0'); }
+  function tick() {
+    var left = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+    statusText.textContent = 'In conversation · ' + fmt(left) + ' left';
+    if (Date.now() > deadline + 5000 && room) { endedByLimit = true; stop(); }
+    else if (left === 0) endedByLimit = true;
+  }
+  function startCountdown(seconds) {
+    deadline = Date.now() + seconds * 1000;
+    endedByLimit = false;
+    clearInterval(ticker);
+    ticker = setInterval(tick, 1000);
+    tick();
+  }
+
   function setLive(live) {
     wrap.classList.toggle('live', live);
+    if (!live) clearInterval(ticker);
     statusText.textContent = live ? 'In conversation' : 'Online';
     startBtn.disabled = false;
     startBtn.lastChild.textContent = 'Start conversation';
@@ -511,8 +531,10 @@
       headers: { 'Content-Type': 'application/json' },
       body: '{}',
     }).then(function (resp) {
-      if (!resp.ok) throw new Error('The assistant is unavailable right now.');
-      return resp.json();
+      if (resp.ok) return resp.json();
+      return resp.json().catch(function () { return {}; }).then(function (body) {
+        throw new Error(resp.status === 429 && body.detail ? body.detail : 'The assistant is unavailable right now.');
+      });
     });
   }
 
@@ -597,7 +619,9 @@
       room.on(LK.RoomEvent.TrackMuted, renderMic);
       room.on(LK.RoomEvent.TrackUnmuted, renderMic);
       room.on(LK.RoomEvent.Disconnected, function () {
-        note('Conversation ended.');
+        note(endedByLimit
+          ? 'Time’s up — conversations are limited to ' + fmt(session.max_duration_seconds || 90) + '. Email Sabith for anything more.'
+          : 'Conversation ended.');
         cleanup();
       });
       room.registerTextStreamHandler('lk.transcription', onTranscription);
@@ -605,6 +629,8 @@
       await room.startAudio();
       if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
       setLive(true);
+      startCountdown(session.max_duration_seconds || 90);
+      if (session.sessions_remaining_today === 0) note('This is your last conversation for today.');
       await setMic(true);
       syncAgentState();
       input.focus({ preventScroll: true });

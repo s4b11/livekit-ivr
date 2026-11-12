@@ -13,6 +13,25 @@ const SessionView = lazy(() =>
   import('@/components/session-view').then((module) => ({ default: module.SessionView })),
 );
 
+/**
+ * LiveKit's token source reports "received <status> / <body>". Show the server's own
+ * message for the daily limit (429); anything else gets a generic retry message.
+ */
+function errorMessage(err: unknown): string {
+  const text = err instanceof Error ? err.message : String(err);
+  const match = text.match(/received 429 \/ (.*)$/s);
+  if (match) {
+    try {
+      const detail = JSON.parse(match[1]).detail;
+      if (typeof detail === 'string') return detail;
+    } catch {
+      /* not JSON: fall through */
+    }
+    return "You've reached today's limit for conversations. Please come back tomorrow.";
+  }
+  return 'The assistant is unavailable right now. Please try again in a moment.';
+}
+
 export default function App() {
   const themeMode = useThemeMode();
   // The API picks the room and dispatches the agent, so no options are needed here.
@@ -28,7 +47,7 @@ export default function App() {
       await session.start();
     } catch (err) {
       console.error(err);
-      setError('The assistant is unavailable right now. Please try again in a moment.');
+      setError(errorMessage(err));
     } finally {
       setIsStarting(false);
     }

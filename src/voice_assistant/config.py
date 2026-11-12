@@ -34,6 +34,10 @@ class Settings(BaseSettings):
 
     # --- Agent wiring ---
     agent_name: str = "sabith-assistant"
+    # Every conversation, phone or web, ends after this many seconds. The agent
+    # starts wrapping up SESSION_WRAP_UP_SECONDS before the limit.
+    max_session_seconds: int = 90
+    session_wrap_up_seconds: int = 12
     sip_room_prefix: str = "call-"
     phone_number: str = ""  # set after provisioning
 

@@ -40,3 +40,8 @@ export const tokenRequestSchema = z.object({
 
 export type CallIngest = z.infer<typeof callIngestSchema>;
 export type CallerMessageInput = z.infer<typeof callerMessageSchema>;
+
+/** Posted by the agent when a phone call connects, to apply the daily allowance. */
+export const sessionClaimSchema = z.object({
+  caller: z.string().min(1).max(64),
+});

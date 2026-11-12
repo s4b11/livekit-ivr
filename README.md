@@ -13,6 +13,9 @@ One agent, four ways to reach it:
 - **Web widget** - one `<script>` tag adds a voice and text chat bubble to any site.
 - **Any LiveKit client** - request a token and join from web, mobile, or another voice app.
 
+Conversations last at most **90 seconds**, and each visitor (by IP) or caller (by
+number) gets **2 per day**; see [limits](docs/architecture.md#limits-anti-spam).
+
 The agent runs on **LiveKit Cloud**. Everything a browser touches - the web app,
 the widget, the token endpoint, and stored transcripts and messages - runs on
 **Cloudflare** (Workers + D1).
