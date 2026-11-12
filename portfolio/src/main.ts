@@ -1,9 +1,11 @@
 import '@fontsource-variable/inter/wght.css';
 import '@fontsource/instrument-serif/latin-400-italic.css';
 import './styles.css';
+import { createAura, type Aura, type AuraState } from './aura';
 
 /** The Cloudflare Worker that serves the voice assistant's embed widget. */
 const ASSISTANT_ORIGIN = 'https://assistant.sabiii.workers.dev';
+const LAVENDER = '#9d8cf2';
 
 declare global {
   interface Window {
@@ -24,21 +26,28 @@ const $$ = <T extends Element = HTMLElement>(sel: string, root: ParentNode = doc
 
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const finePointer = matchMedia('(hover: hover) and (pointer: fine)');
-const compactLayout = matchMedia('(max-width: 860px), (pointer: coarse)');
+const clamp = (v: number, lo = 0, hi = 1) => Math.min(hi, Math.max(lo, v));
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
-/* ------------------------------------------------------------ hero title */
-function splitWords(el: HTMLElement) {
-  let w = 0;
+/* ---------------------------------------------------------- split to words */
+/** Wraps each word in spans so it can be animated; keeps inline elements like <em>. */
+function splitWords(el: HTMLElement, wordClass: string, nested: boolean) {
+  let index = 0;
   const walk = (node: Node): Node[] => {
     if (node.nodeType === Node.TEXT_NODE) {
       return (node.textContent ?? '').split(/(\s+)/).map((part) => {
-        if (!part.trim()) return document.createTextNode(part);
+        if (!part.trim()) return document.createTextNode(part.replace(/\s+/g, ' '));
         const outer = document.createElement('span');
-        outer.className = 'word';
-        const inner = document.createElement('span');
-        inner.style.setProperty('--w', String(w++));
-        inner.textContent = part;
-        outer.append(inner);
+        outer.className = wordClass;
+        outer.style.setProperty('--w', String(index++));
+        if (nested) {
+          const inner = document.createElement('span');
+          inner.style.setProperty('--w', outer.style.getPropertyValue('--w'));
+          inner.textContent = part;
+          outer.append(inner);
+        } else {
+          outer.textContent = part;
+        }
         return outer;
       });
     }
@@ -49,22 +58,34 @@ function splitWords(el: HTMLElement) {
     }
     return [node.cloneNode()];
   };
-  const parts = Array.from(el.childNodes).flatMap(walk);
-  el.setAttribute('aria-label', el.textContent?.replace(/\s+/g, ' ').trim() ?? '');
-  el.replaceChildren(...parts);
-  // Screen readers get the aria-label; the animated spans are presentation only.
-  $$('.word', el).forEach((word) => word.setAttribute('aria-hidden', 'true'));
+  const label = el.textContent?.replace(/\s+/g, ' ').trim() ?? '';
+  el.replaceChildren(...Array.from(el.childNodes).flatMap(walk));
+  // Keep punctuation with the element before it ("<em>cites</em>," must not break
+  // before the comma).
+  $$(`.${wordClass}`, el).forEach((word) => {
+    const before = word.previousSibling;
+    if (!/^[,.;:!?]+$/.test(word.textContent ?? '') || !(before instanceof HTMLElement)) return;
+    const keep = document.createElement('span');
+    keep.style.whiteSpace = 'nowrap';
+    before.before(keep);
+    keep.append(before, word);
+  });
+  // Screen readers get the sentence once; the animated spans are presentation only.
+  el.setAttribute('aria-label', label);
+  if (!el.hasAttribute('role') && el.tagName === 'P') el.setAttribute('role', 'paragraph');
+  $$(`.${wordClass}`, el).forEach((word) => word.setAttribute('aria-hidden', 'true'));
+  return index;
 }
 
 function initHero() {
   const title = $('[data-split]');
-  if (title) splitWords(title);
+  if (title) splitWords(title, 'word', true);
   requestAnimationFrame(() => requestAnimationFrame(() => $('[data-hero]')?.classList.add('is-ready')));
 }
 
-/* --------------------------------------------------------- reveal on view */
+/* ---------------------------------------------------------- reveal on view */
 function initReveal() {
-  const items = $$('.reveal');
+  const items = $$('.reveal, .case');
   if (!('IntersectionObserver' in window)) {
     items.forEach((el) => el.classList.add('is-in'));
     return;
@@ -83,70 +104,67 @@ function initReveal() {
   items.forEach((el) => io.observe(el));
 }
 
-/* ----------------------------------------------- scroll-linked behaviour */
+/* ------------------------------------------------- scroll-linked behaviour */
 function initScroll() {
   const nav = $('[data-nav]');
   const timeline = $('[data-timeline]');
-  const supportsScrollTimeline = CSS.supports('animation-timeline: scroll()');
-  let lastY = scrollY;
-  // Distance scrolled in the current direction. The header only hides after a
-  // deliberate scroll down and only returns after a deliberate scroll up, so
-  // momentum scrolling and the mobile address bar resizing cannot make it flicker.
-  let travel = 0;
-  const HIDE_AFTER = 140;
-  const SHOW_AFTER = 70;
-
-  const updateNavVisibility = (el: HTMLElement, delta: number, y: number) => {
-    // On phones and tablets the header stays put: hiding it there causes more
-    // jumpiness than it saves space.
-    if (compactLayout.matches || document.body.classList.contains('menu-open') || y < 320) {
-      travel = 0;
-      el.classList.remove('is-hidden');
-      return;
-    }
-    if (delta === 0) return;
-    travel = Math.sign(delta) === Math.sign(travel) ? travel + delta : delta;
-    if (travel > HIDE_AFTER) el.classList.add('is-hidden');
-    else if (travel < -SHOW_AFTER) el.classList.remove('is-hidden');
-  };
+  const cases = $$('[data-cases] .case');
+  const statement = $('[data-fill]');
+  const words = statement ? (splitWords(statement, 'w', false), $$('.w', statement)) : [];
+  const footer = $('.footer');
+  const root = document.documentElement;
   let ticking = false;
 
   const update = () => {
     ticking = false;
     const y = scrollY;
-    const max = document.documentElement.scrollHeight - innerHeight;
+    const vh = innerHeight;
+    const max = root.scrollHeight - vh;
+    root.style.setProperty('--progress', String(max > 0 ? y / max : 0));
+    nav?.classList.toggle('is-scrolled', y > 24);
 
-    if (!supportsScrollTimeline) {
-      document.documentElement.style.setProperty('--progress', String(max > 0 ? y / max : 0));
-    }
-
-    if (nav) {
-      nav.classList.toggle('is-scrolled', y > 24);
-      updateNavVisibility(nav, y - lastY, y);
-    }
-
+    // Career line draws itself as the list scrolls through.
     if (timeline) {
       const rect = timeline.getBoundingClientRect();
-      const progress = (innerHeight * 0.7 - rect.top) / rect.height;
-      timeline.style.setProperty('--tl', String(Math.min(1, Math.max(0, progress))));
+      timeline.style.setProperty('--tl', String(clamp((vh * 0.72 - rect.top) / rect.height)));
     }
-    lastY = y;
+
+    // Stacked case studies: a card recedes slightly as the next one slides over it.
+    cases.forEach((card, i) => {
+      const next = cases[i + 1];
+      if (!next) return;
+      const top = card.getBoundingClientRect().top;
+      const nextTop = next.getBoundingClientRect().top;
+      const distance = card.offsetHeight;
+      card.style.setProperty('--p', String(clamp(1 - (nextTop - top) / distance)));
+    });
+
+    // The about statement fills in word by word.
+    if (statement && words.length) {
+      const rect = statement.getBoundingClientRect();
+      const progress = clamp((vh * 0.86 - rect.top) / (rect.height + vh * 0.36));
+      const lit = Math.round(progress * words.length);
+      words.forEach((word, i) => word.classList.toggle('on', i < lit));
+    }
+
+    if (footer) {
+      const rect = footer.getBoundingClientRect();
+      footer.style.setProperty('--foot', String(clamp((vh - rect.top) / Math.max(rect.height, 1))));
+    }
   };
 
-  addEventListener(
-    'scroll',
-    () => {
-      if (!ticking) {
-        ticking = true;
-        requestAnimationFrame(update);
-      }
-    },
-    { passive: true },
-  );
+  const onScroll = () => {
+    if (!ticking) {
+      ticking = true;
+      requestAnimationFrame(update);
+    }
+  };
+  addEventListener('scroll', onScroll, { passive: true });
+  addEventListener('resize', onScroll, { passive: true });
   update();
 }
 
-/* ------------------------------------------------- active nav section */
+/* ---------------------------------------------------- active nav section */
 function initActiveSection() {
   const links = $$<HTMLAnchorElement>('[data-nav-links] a');
   const byId = new Map(links.map((a) => [a.hash.slice(1), a]));
@@ -161,118 +179,49 @@ function initActiveSection() {
     },
     { rootMargin: '-45% 0px -50% 0px' },
   );
-  byId.forEach((_, id) => {
-    const section = document.getElementById(id);
-    if (section) io.observe(section);
-  });
+  // Watch every section, so the highlight clears over ones that have no nav link.
+  $$('main > section[id]').forEach((section) => io.observe(section));
 }
 
-/* ---------------------------------------------------- pointer effects */
+/* --------------------------------------------------------- pointer effects */
 function initPointer() {
   if (!finePointer.matches || reducedMotion.matches) return;
 
-  // Hero orb drifts gently toward the cursor.
   const hero = $('[data-hero]');
-  const orb = $('.orb', hero ?? document);
+  const glow = $('.glow-a', hero ?? document);
   hero?.addEventListener('pointermove', (e) => {
     const rect = hero.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    orb?.style.setProperty('--mx', `${x * 80}px`);
-    orb?.style.setProperty('--my', `${y * 60}px`);
+    glow?.style.setProperty('--mx', `${((e.clientX - rect.left) / rect.width - 0.5) * 90}px`);
+    glow?.style.setProperty('--my', `${((e.clientY - rect.top) / rect.height - 0.5) * 60}px`);
   });
 
-  // Magnetic buttons.
   $$('.magnetic').forEach((btn) => {
     btn.addEventListener('pointermove', (e) => {
       const rect = btn.getBoundingClientRect();
       const x = e.clientX - rect.left - rect.width / 2;
       const y = e.clientY - rect.top - rect.height / 2;
-      btn.style.transform = `translate(${x * 0.18}px, ${y * 0.28}px)`;
+      btn.style.transform = `translate(${x * 0.16}px, ${y * 0.26}px)`;
     });
     btn.addEventListener('pointerleave', () => (btn.style.transform = ''));
   });
-
-  // Project cards: soft tilt plus a spotlight that follows the cursor.
-  $$('.card').forEach((card) => {
-    card.addEventListener('pointermove', (e) => {
-      const rect = card.getBoundingClientRect();
-      const px = (e.clientX - rect.left) / rect.width;
-      const py = (e.clientY - rect.top) / rect.height;
-      card.classList.add('is-tilting');
-      card.style.setProperty('--ry', `${(px - 0.5) * 5}deg`);
-      card.style.setProperty('--rx', `${(0.5 - py) * 5}deg`);
-      card.style.setProperty('--gx', `${px * 100}%`);
-      card.style.setProperty('--gy', `${py * 100}%`);
-    });
-    card.addEventListener('pointerleave', () => {
-      card.classList.remove('is-tilting');
-      card.style.setProperty('--rx', '0deg');
-      card.style.setProperty('--ry', '0deg');
-    });
-  });
 }
 
-/* -------------------------------------------------------- project filter */
-function initFilters() {
-  const chips = $$<HTMLButtonElement>('[data-filter]');
-  const cards = $$('[data-projects] .card');
-
-  const apply = (filter: string) => {
-    for (const card of cards) {
-      const show = filter === 'all' || (card.dataset.tags ?? '').split(' ').includes(filter);
-      card.classList.toggle('is-filtered', !show);
-    }
+/* ------------------------------------------------------------- local time */
+function initClock() {
+  const targets = $$('[data-clock]');
+  if (!targets.length) return;
+  const format = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Kolkata',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+  const tick = () => {
+    const now = format.format(new Date());
+    targets.forEach((el) => (el.textContent = now));
   };
-
-  chips.forEach((chip) =>
-    chip.addEventListener('click', () => {
-      const filter = chip.dataset.filter ?? 'all';
-      chips.forEach((c) => {
-        const active = c === chip;
-        c.classList.toggle('is-active', active);
-        c.setAttribute('aria-pressed', String(active));
-      });
-      const doc = document as Document & { startViewTransition?: (cb: () => void) => unknown };
-      if (doc.startViewTransition && !reducedMotion.matches) {
-        // Name the cards only for this transition, so they glide to their new places.
-        const name = (value: string) =>
-          cards.forEach((card, i) => card.style.setProperty('view-transition-name', value && `${value}-${i}`));
-        name('card');
-        const vt = doc.startViewTransition(() => apply(filter)) as { finished?: Promise<void> } | undefined;
-        void vt?.finished?.finally(() => name(''));
-      } else {
-        apply(filter);
-      }
-    }),
-  );
-}
-
-/* --------------------------------------------------------------- counters */
-function initCounters() {
-  $$('[data-count]').forEach((el) => {
-    const from = Number(el.dataset.count);
-    const to = Number(el.dataset.to);
-    if (reducedMotion.matches) {
-      el.textContent = String(from);
-      return;
-    }
-    const io = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting) return;
-      io.disconnect();
-      // Hold on the "before" value briefly, then count down to the "after" value.
-      const start = performance.now() + 900;
-      const duration = 1100;
-      const step = (now: number) => {
-        const t = Math.min(1, Math.max(0, (now - start) / duration));
-        const eased = 1 - Math.pow(1 - t, 3);
-        el.textContent = (from + (to - from) * eased).toFixed(t < 1 ? 1 : 0).replace(/\.0$/, '');
-        if (t < 1) requestAnimationFrame(step);
-      };
-      requestAnimationFrame(step);
-    });
-    io.observe(el);
-  });
+  tick();
+  setInterval(tick, 15_000);
 }
 
 /* ------------------------------------------------------------ mobile menu */
@@ -285,7 +234,6 @@ function initMenu() {
   const setOpen = (open: boolean) => {
     btn.setAttribute('aria-expanded', String(open));
     btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
-    document.body.classList.toggle('menu-open', open);
     document.body.style.overflow = open ? 'hidden' : '';
     if (open) {
       menu.hidden = false;
@@ -316,7 +264,6 @@ function toast(message: string) {
   toastTimer = window.setTimeout(() => el.classList.remove('is-shown'), 2400);
 }
 
-/* ------------------------------------------------------------- copy email */
 function initCopy() {
   $$('[data-copy]').forEach((btn) =>
     btn.addEventListener('click', async () => {
@@ -331,6 +278,148 @@ function initCopy() {
   );
 }
 
+/* --------------------------------------------------- hero call preview */
+type Line = { who: 'user' | 'agent'; text: string };
+
+/** What the preview plays: the kind of thing the real assistant says. */
+const SCRIPT: Line[][] = [
+  [
+    { who: 'user', text: 'Who is Sabith?' },
+    { who: 'agent', text: 'He’s a software developer who builds real-time voice agents, retrieval tools, and the backends behind them.' },
+  ],
+  [
+    { who: 'user', text: 'What is he working on right now?' },
+    { who: 'agent', text: 'Voice AI at IoTides: natural turn-taking, and reply latency you can actually measure.' },
+  ],
+  [
+    { who: 'user', text: 'Can I leave him a message?' },
+    { who: 'agent', text: 'Of course. Tell me your name and the best way to reach you.' },
+  ],
+];
+
+const STATE_LABEL: Record<AuraState, string> = {
+  idle: 'Ready',
+  listening: 'Listening',
+  thinking: 'Thinking',
+  speaking: 'Speaking',
+};
+
+function initCallPreview() {
+  const card = $('[data-call]');
+  const stage = $('[data-call-stage]');
+  const canvas = $<HTMLCanvasElement>('[data-aura]');
+  const log = $('[data-call-log]');
+  const stateEl = $('[data-call-state]');
+  const timeEl = $('[data-call-time]');
+  if (!card || !stage || !canvas || !log || !stateEl || !timeEl) return;
+
+  const bubble = (line: Line) => {
+    const el = document.createElement('div');
+    el.className = `bubble bubble-${line.who}`;
+    log.append(el);
+    // Keep only the latest exchange so the card never grows.
+    while (log.childElementCount > 2) log.firstElementChild?.remove();
+    return el;
+  };
+
+  // Reduced motion, or no WebGL: a still picture of one exchange.
+  const aura: Aura | null = reducedMotion.matches ? null : createAura(canvas, LAVENDER);
+  if (!aura) {
+    stage.classList.add('no-gl');
+    SCRIPT[0].forEach((line) => (bubble(line).textContent = line.text));
+    stateEl.textContent = STATE_LABEL.listening;
+    return;
+  }
+
+  let visible = false;
+  let waiters: Array<() => void> = [];
+  const whenVisible = () => (visible && !document.hidden ? Promise.resolve() : new Promise<void>((r) => waiters.push(r)));
+  const wake = () => {
+    if (visible && !document.hidden) {
+      aura.play();
+      waiters.forEach((resolve) => resolve());
+      waiters = [];
+    } else {
+      aura.pause();
+    }
+  };
+  new IntersectionObserver(([entry]) => {
+    visible = entry.isIntersecting;
+    wake();
+  }).observe(card);
+  document.addEventListener('visibilitychange', wake);
+
+  let elapsed = 0;
+  setInterval(() => {
+    if (!visible || document.hidden) return;
+    elapsed = (elapsed + 1) % 90;
+    timeEl.textContent = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, '0')}`;
+  }, 1000);
+
+  const setState = (state: AuraState) => {
+    aura.setState(state);
+    stateEl.textContent = STATE_LABEL[state];
+  };
+
+  const pause = async (ms: number) => {
+    await sleep(ms);
+    await whenVisible();
+  };
+
+  // A gentle, speech-like level for the aura while the assistant "talks".
+  let speaking = 0;
+  const startSpeaking = () => {
+    const began = performance.now();
+    speaking = window.setInterval(() => {
+      const t = (performance.now() - began) / 1000;
+      aura.setVolume(clamp(0.42 + 0.3 * Math.sin(t * 9.1) * Math.sin(t * 2.3) + 0.12 * Math.sin(t * 23)));
+    }, 60);
+  };
+  const stopSpeaking = () => {
+    clearInterval(speaking);
+    aura.setVolume(0);
+  };
+
+  const run = async () => {
+    await whenVisible();
+    await pause(900);
+    for (let i = 0; ; i = (i + 1) % SCRIPT.length) {
+      const [question, answer] = SCRIPT[i];
+
+      setState('listening');
+      const q = bubble(question);
+      q.classList.add('is-typing');
+      for (const char of question.text) {
+        q.textContent += char;
+        await pause(34 + Math.random() * 30);
+      }
+      q.classList.remove('is-typing');
+      await pause(450);
+
+      setState('thinking');
+      await pause(850);
+
+      setState('speaking');
+      startSpeaking();
+      const a = bubble(answer);
+      for (const word of answer.text.split(' ')) {
+        a.textContent += (a.textContent ? ' ' : '') + word;
+        await pause(95 + Math.random() * 70);
+      }
+      await pause(500);
+      stopSpeaking();
+
+      setState('listening');
+      await pause(2400);
+      log.classList.add('is-clearing');
+      await pause(360);
+      log.replaceChildren();
+      log.classList.remove('is-clearing');
+    }
+  };
+  void run();
+}
+
 /* --------------------------------------------------------- voice assistant */
 let widgetPromise: Promise<void> | null = null;
 
@@ -341,7 +430,7 @@ function loadAssistant(): Promise<void> {
     script.src = `${ASSISTANT_ORIGIN}/embed/embed.js`;
     script.async = true;
     script.dataset.title = "Sabith's AI assistant";
-    script.dataset.accent = '#9d8cf2';
+    script.dataset.accent = LAVENDER;
     script.dataset.theme = 'light';
     script.onload = () => resolve();
     script.onerror = () => {
@@ -381,10 +470,10 @@ function boot() {
   initScroll();
   initActiveSection();
   initPointer();
-  initFilters();
-  initCounters();
+  initClock();
   initMenu();
   initCopy();
+  initCallPreview();
   initAssistant();
 }
 
