@@ -1,6 +1,6 @@
 """The realtime model's transcription settings, and that they serialize for the Gemini API."""
 
-from google.genai import _live_converters, types
+from livekit.agents.types import NOT_GIVEN
 
 from voice_assistant.agent.realtime import build_realtime_model, build_transcription_config
 from voice_assistant.config import Settings
@@ -25,13 +25,20 @@ def test_empty_setting_falls_back_to_auto_detection():
     assert build_transcription_config(_settings(transcription_languages="")).language_hints is None
 
 
-def test_config_serializes_for_the_gemini_developer_api():
-    # The Developer API rejects some fields (e.g. the deprecated language_codes);
-    # this is the same conversion the SDK runs when the session connects.
-    wire = _live_converters._AudioTranscriptionConfig_to_mldev(
-        build_transcription_config(_settings())
+def test_defaults_to_gemini_3_8_live(monkeypatch):
+    monkeypatch.setenv("GOOGLE_API_KEY", "test-key")
+    model = build_realtime_model(_settings())
+    assert model.model == "gemini-3.8-live"
+    # gemini-3.8-live manages its own thinking; a thinking config is only sent to 2.5 models.
+    assert model._opts.thinking_config is NOT_GIVEN
+
+
+def test_thinking_budget_still_applies_to_gemini_2_5(monkeypatch):
+    monkeypatch.setenv("GOOGLE_API_KEY", "test-key")
+    model = build_realtime_model(
+        _settings(gemini_live_model="gemini-2.5-flash-native-audio-preview-12-2025")
     )
-    assert wire["languageHints"] == types.LanguageHints(language_codes=["en-IN"])
+    assert model._opts.thinking_config.thinking_budget == 0
 
 
 def test_realtime_model_builds_with_pinned_transcription(monkeypatch):

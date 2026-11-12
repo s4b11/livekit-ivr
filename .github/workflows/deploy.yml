@@ -141,6 +141,21 @@ jobs:
             echo "operation=create" >> "$GITHUB_OUTPUT"
           fi
 
+      # Talk to the configured Gemini Live model before shipping anything, so a bad
+      # model name, key, or setting fails here and the running agent stays in place.
+      - uses: astral-sh/setup-uv@v6
+        if: steps.config.outputs.operation != ''
+        with:
+          enable-cache: true
+
+      - name: Smoke-test the Gemini Live model
+        if: steps.config.outputs.operation != ''
+        env:
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        run: |
+          uv sync --locked --no-dev
+          uv run --no-sync python scripts/smoke_realtime.py
+
       # First run only: registers the agent, deploys it, and writes livekit.toml.
       - name: Create agent
         if: steps.config.outputs.operation == 'create'

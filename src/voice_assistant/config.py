@@ -19,7 +19,7 @@ class Settings(BaseSettings):
 
     # --- Gemini Live API ---
     google_api_key: str = ""
-    gemini_live_model: str = ""  # empty -> plugin default
+    gemini_live_model: str = "gemini-3.8-live"
     gemini_voice: str = "Puck"
     # Optional BCP-47 code (e.g. "en-US"). Native-audio models pick the language
     # from the prompt, so this is left empty unless the chosen model needs it.

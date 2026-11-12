@@ -28,6 +28,11 @@ def build_transcription_config(settings: Settings) -> types.AudioTranscriptionCo
     )
 
 
+def uses_thinking_budget(model: str) -> bool:
+    """Only Gemini 2.5 Live models take the thinking budget this agent sets."""
+    return "2.5" in model
+
+
 def build_realtime_model(settings: Settings) -> google.realtime.RealtimeModel:
     """Build the speech-to-speech model.
 
@@ -35,8 +40,10 @@ def build_realtime_model(settings: Settings) -> google.realtime.RealtimeModel:
       barge-in is caught quickly; a 400 ms silence window balances response speed
       against cutting people off on noisy phone audio.
     - START_OF_ACTIVITY_INTERRUPTS enables true barge-in interruption.
-    - thinking_budget=0 disables dynamic thinking, which otherwise makes some
-      replies stall for seconds while others are instant.
+    - On Gemini 2.5 native-audio models, thinking_budget=0 disables dynamic
+      thinking, which otherwise makes some replies stall for seconds. Gemini 3.x
+      Live models manage thinking themselves (gemini-3.8-live rejects a
+      thinking level on the Gemini API), so no thinking config is sent to them.
     - Input and output audio transcription are enabled so the stored transcript
       (and the web widget's captions) contain both sides of the conversation.
       Both are pinned to TRANSCRIPTION_LANGUAGES (default en-IN), so English
@@ -45,12 +52,13 @@ def build_realtime_model(settings: Settings) -> google.realtime.RealtimeModel:
     kwargs: dict = {}
     if settings.gemini_live_model:
         kwargs["model"] = settings.gemini_live_model
+    if uses_thinking_budget(settings.gemini_live_model):
+        kwargs["thinking_config"] = types.ThinkingConfig(thinking_budget=0)
     if settings.gemini_language:
         kwargs["language"] = settings.gemini_language
     return google.realtime.RealtimeModel(
         voice=settings.gemini_voice,
         temperature=0.6,
-        thinking_config=types.ThinkingConfig(thinking_budget=0),
         input_audio_transcription=build_transcription_config(settings),
         output_audio_transcription=build_transcription_config(settings),
         realtime_input_config=types.RealtimeInputConfig(
