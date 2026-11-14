@@ -304,7 +304,8 @@
   }
 
   function createAura(cv) {
-    var gl = cv.getContext('webgl') || cv.getContext('experimental-webgl');
+    var glOpts = { antialias: false, powerPreference: 'low-power' };
+    var gl = cv.getContext('webgl', glOpts) || cv.getContext('experimental-webgl', glOpts);
     if (!gl) return null;
     function compile(type, src) {
       var s = gl.createShader(type);
@@ -352,6 +353,20 @@
     var scale = animatedValue(0.2), amplitude = animatedValue(2), frequency = animatedValue(0.5), brightness = animatedValue(1.5);
     var time = 0, last = 0, raf = 0, running = false;
 
+    // Rendering budget: at most 1.5x pixel density; on a low-end device 1x at 30
+    // frames a second. If frames still run long, the resolution steps down.
+    var nav = navigator;
+    var lowEnd = (nav.hardwareConcurrency || 8) <= 4 || (nav.deviceMemory || 8) <= 4 || !!(nav.connection && nav.connection.saveData);
+    var quality = Math.min(window.devicePixelRatio || 1, lowEnd ? 1 : 1.5);
+    var minFrame = lowEnd ? 1000 / 30 - 2 : 0;
+    var drawn = 0, slow = 0, frames = 0, cssW = 0, cssH = 0;
+    if (window.ResizeObserver) {
+      new ResizeObserver(function (entries) {
+        cssW = entries[0].contentRect.width;
+        cssH = entries[0].contentRect.height;
+      }).observe(cv);
+    }
+
     function applyState(s, now) {
       state = s;
       var TWEEN = 500, PULSE = 350;
@@ -390,7 +405,10 @@
     function frame(now) {
       if (!running) return;
       raf = requestAnimationFrame(frame);
-      var dt = last ? (now - last) / 1000 : 0;
+      if (minFrame && now - drawn < minFrame) return;
+      var gap = drawn ? now - drawn : 16;
+      drawn = now;
+      var dt = last ? Math.min((now - last) / 1000, 0.1) : 0;
       last = now;
       // iTime * uSpeed in the original; integrating keeps the motion continuous
       // when the speed changes between states.
@@ -398,8 +416,14 @@
 
       if (state === 'speaking' && volume > 0 && !scale.isAnimating(now)) scale.set(0.2 + 0.2 * volume);
 
-      var dpr = Math.min(window.devicePixelRatio || 1, 2);
-      var w = Math.floor(cv.clientWidth * dpr), h = Math.floor(cv.clientHeight * dpr);
+      frames++;
+      if (gap > (minFrame || 16.7) * 1.6) slow++;
+      if (frames === 90) {
+        if (slow > 30 && quality > 0.5) quality = Math.max(0.5, quality * 0.75);
+        frames = slow = 0;
+      }
+      if (!cssW) { cssW = cv.clientWidth; cssH = cv.clientHeight; }
+      var w = Math.floor(cssW * quality), h = Math.floor(cssH * quality);
       if (w && h && (cv.width !== w || cv.height !== h)) { cv.width = w; cv.height = h; }
       gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
       gl.clear(gl.COLOR_BUFFER_BIT);
@@ -418,7 +442,7 @@
       setState: function (s) { if (s !== state) applyState(s, performance.now()); },
       setVolume: function (v) { volume = v; },
       setTheme: function (t) { mode = t === 'light' ? 1 : 0; },
-      play: function () { if (!running) { running = true; last = 0; raf = requestAnimationFrame(frame); } },
+      play: function () { if (!running) { running = true; last = 0; drawn = 0; raf = requestAnimationFrame(frame); } },
       pause: function () { running = false; cancelAnimationFrame(raf); },
     };
   }

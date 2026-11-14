@@ -381,11 +381,9 @@ svg {
 }
 
 .nav.is-scrolled {
-  background: rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.95);
   border-color: var(--line);
   box-shadow: var(--shadow-sm);
-  backdrop-filter: blur(16px) saturate(1.5);
-  -webkit-backdrop-filter: blur(16px) saturate(1.5);
 }
 
 .brand {
@@ -491,9 +489,7 @@ svg {
   z-index: 40;
   display: grid;
   place-items: center;
-  background: rgba(255, 255, 255, 0.97);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.98);
   opacity: 0;
   transition: opacity 0.35s var(--ease);
 }
@@ -558,7 +554,7 @@ svg {
 .glow {
   position: absolute;
   border-radius: 50%;
-  filter: blur(70px);
+  will-change: transform;
 }
 
 .glow-a {
@@ -566,7 +562,7 @@ svg {
   right: -8%;
   width: min(720px, 90vw);
   aspect-ratio: 1;
-  background: radial-gradient(circle, var(--lav-200), transparent 65%);
+  background: radial-gradient(circle closest-side, var(--lav-200), rgba(224, 217, 255, 0.5) 45%, transparent);
   translate: var(--mx, 0px) var(--my, 0px);
   transition: translate 1.4s var(--ease);
   animation: drift 18s ease-in-out infinite alternate;
@@ -577,7 +573,7 @@ svg {
   left: -14%;
   width: min(560px, 80vw);
   aspect-ratio: 1;
-  background: radial-gradient(circle, var(--lav-100), transparent 65%);
+  background: radial-gradient(circle closest-side, var(--lav-100), rgba(239, 235, 255, 0.5) 45%, transparent);
   animation: drift 22s ease-in-out infinite alternate-reverse;
 }
 
@@ -732,17 +728,15 @@ svg {
   padding: 18px;
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
-  background: rgba(255, 255, 255, 0.86);
+  background: rgba(255, 255, 255, 0.95);
   box-shadow: var(--shadow-lg);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
 }
 
 @media (min-width: 1020px) {
   .call {
     justify-self: end;
     rotate: 1.2deg;
-    transition: rotate 0.8s var(--ease), translate 0.8s var(--ease), opacity 0.9s var(--ease), transform 0.9s var(--ease), filter 0.9s var(--ease);
+    transition: rotate 0.8s var(--ease), translate 0.8s var(--ease), opacity 0.9s var(--ease), transform 0.9s var(--ease);
   }
 
   .call:hover {
@@ -818,7 +812,6 @@ svg {
   height: 112px;
   border: 12px solid var(--lav-400);
   border-radius: 46% 54% 52% 48% / 50% 46% 54% 50%;
-  filter: blur(3px);
   opacity: 0.85;
 }
 
@@ -1023,15 +1016,13 @@ h2 em {
 .js .reveal {
   opacity: 0;
   transform: translateY(24px);
-  filter: blur(6px);
-  transition: opacity 0.9s var(--ease), transform 0.9s var(--ease), filter 0.9s var(--ease);
+  transition: opacity 0.9s var(--ease), transform 0.9s var(--ease);
   transition-delay: calc(var(--i, 0) * 80ms);
 }
 
 .js .reveal.is-in {
   opacity: 1;
   transform: none;
-  filter: none;
 }
 
 /* =================================================================== bento */
@@ -1091,7 +1082,7 @@ h2 em {
   border-radius: 24px;
   background: var(--white);
   overflow: hidden;
-  transition: opacity 0.9s var(--ease), transform 0.6s var(--ease), filter 0.9s var(--ease), border-color 0.3s, box-shadow 0.5s var(--ease);
+  transition: opacity 0.9s var(--ease), transform 0.6s var(--ease), border-color 0.3s, box-shadow 0.5s var(--ease);
 }
 
 .tile:hover {
@@ -1421,7 +1412,6 @@ h2 em {
     grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
     min-height: min(500px, calc(100svh - var(--nav-h) - 110px));
     transform: scale(calc(1 - var(--p, 0) * 0.045));
-    filter: brightness(calc(1 - var(--p, 0) * 0.06));
   }
 }
 
@@ -1624,7 +1614,6 @@ h2 em {
   margin-bottom: 6px;
   border: 7px solid var(--lav-500);
   border-radius: 46% 54% 52% 48% / 50% 46% 54% 50%;
-  filter: blur(1.5px);
   animation: wobble 5s ease-in-out infinite, spin 14s linear infinite;
 }
 
@@ -1826,7 +1815,7 @@ h2 em {
   gap: 10px 28px;
   padding-block: 22px;
   border-top: 1px solid var(--line);
-  transition: opacity 0.9s var(--ease), transform 0.9s var(--ease), filter 0.9s var(--ease), padding 0.4s var(--ease);
+  transition: opacity 0.9s var(--ease), transform 0.9s var(--ease);
 }
 
 .more li:last-child {
@@ -1839,8 +1828,16 @@ h2 em {
     align-items: center;
   }
 
-  .more li:hover {
-    padding-inline: 14px;
+  .more li > * {
+    transition: translate 0.4s var(--ease);
+  }
+
+  .more li:hover > * {
+    translate: 14px 0;
+  }
+
+  .more li:hover > :last-child {
+    translate: -14px 0;
   }
 }
 
@@ -2016,7 +2013,7 @@ h2 em {
   border: 1px solid var(--line);
   border-radius: 24px;
   background: var(--white);
-  transition: opacity 0.9s var(--ease), transform 0.6s var(--ease), filter 0.9s var(--ease), border-color 0.3s, box-shadow 0.5s var(--ease), background-color 0.4s;
+  transition: opacity 0.9s var(--ease), transform 0.6s var(--ease), border-color 0.3s, box-shadow 0.5s var(--ease), background-color 0.4s;
 }
 
 .principle:hover {
@@ -2104,7 +2101,7 @@ h2 em {
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
   background: var(--white);
-  transition: opacity 0.9s var(--ease), transform 0.6s var(--ease), filter 0.9s var(--ease), border-color 0.3s, box-shadow 0.5s var(--ease), background-color 0.4s;
+  transition: opacity 0.9s var(--ease), transform 0.6s var(--ease), border-color 0.3s, box-shadow 0.5s var(--ease), background-color 0.4s;
 }
 
 .post:hover {
@@ -2327,6 +2324,14 @@ h2 em {
     opacity: 0;
     pointer-events: none;
   }
+}
+
+/* Looping animations pause while their section is off screen. */
+.is-offscreen,
+.is-offscreen *,
+.is-offscreen *::before,
+.is-offscreen *::after {
+  animation-play-state: paused !important;
 }
 
 /* ============================================================== responsive */

@@ -132,7 +132,7 @@ function hexToRgb(hex: string): number[] {
 
 /** Returns null when WebGL is unavailable; callers should show a static fallback. */
 export function createAura(canvas: HTMLCanvasElement, color = '#9d8cf2'): Aura | null {
-  const gl = canvas.getContext('webgl');
+  const gl = canvas.getContext('webgl', { antialias: false, powerPreference: 'low-power' });
   if (!gl) return null;
 
   const compile = (type: number, source: string) => {
@@ -188,6 +188,21 @@ export function createAura(canvas: HTMLCanvasElement, color = '#9d8cf2'): Aura |
   const brightness = animated(1.5);
   let time = 0, last = 0, raf = 0, running = false;
 
+  // Rendering budget. The shader is the costliest thing on the page, so it draws at
+  // most 1.5x pixel density, and on a low-end device at 1x and 30 frames a second.
+  // If frames still run long, the resolution steps down until they don't.
+  const lowEnd = isLowEnd();
+  let quality = Math.min(window.devicePixelRatio || 1, lowEnd ? 1 : 1.5);
+  const minFrame = lowEnd ? 1000 / 30 - 2 : 0;
+  let drawn = 0, slow = 0, frames = 0;
+  let cssW = canvas.clientWidth, cssH = canvas.clientHeight;
+  if ('ResizeObserver' in window) {
+    new ResizeObserver(([entry]) => {
+      cssW = entry.contentRect.width;
+      cssH = entry.contentRect.height;
+    }).observe(canvas);
+  }
+
   const apply = (next: AuraState, now: number) => {
     state = next;
     const TWEEN = 500;
@@ -222,14 +237,24 @@ export function createAura(canvas: HTMLCanvasElement, color = '#9d8cf2'): Aura |
   const frame = (now: number) => {
     if (!running) return;
     raf = requestAnimationFrame(frame);
+    if (minFrame && now - drawn < minFrame) return;
+    const gap = drawn ? now - drawn : 16;
+    drawn = now;
     const dt = last ? Math.min((now - last) / 1000, 0.1) : 0;
     last = now;
     time += dt * speed;
     if (state === 'speaking' && volume > 0 && !scale.isAnimating(now)) scale.set(0.2 + 0.2 * volume);
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const w = Math.floor(canvas.clientWidth * dpr);
-    const h = Math.floor(canvas.clientHeight * dpr);
+    // Step the resolution down while frames keep missing their budget.
+    frames++;
+    if (gap > (minFrame || 16.7) * 1.6) slow++;
+    if (frames === 90) {
+      if (slow > 30 && quality > 0.5) quality = Math.max(0.5, quality * 0.75);
+      frames = slow = 0;
+    }
+
+    const w = Math.floor(cssW * quality);
+    const h = Math.floor(cssH * quality);
     if (w && h && (canvas.width !== w || canvas.height !== h)) {
       canvas.width = w;
       canvas.height = h;
@@ -257,6 +282,7 @@ export function createAura(canvas: HTMLCanvasElement, color = '#9d8cf2'): Aura |
       if (running) return;
       running = true;
       last = 0;
+      drawn = 0;
       raf = requestAnimationFrame(frame);
     },
     pause() {
@@ -264,4 +290,14 @@ export function createAura(canvas: HTMLCanvasElement, color = '#9d8cf2'): Aura |
       cancelAnimationFrame(raf);
     },
   };
+}
+
+/** A rough guess at a low-end device: few cores, little memory, or a data saver. */
+export function isLowEnd(): boolean {
+  const nav = navigator as Navigator & { deviceMemory?: number; connection?: { saveData?: boolean } };
+  return (
+    (nav.hardwareConcurrency || 8) <= 4 ||
+    (nav.deviceMemory || 8) <= 4 ||
+    Boolean(nav.connection?.saveData)
+  );
 }

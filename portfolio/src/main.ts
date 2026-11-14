@@ -115,41 +115,56 @@ function initScroll() {
   const root = document.documentElement;
   let ticking = false;
 
+  const progressBar = $('.progress');
+  let lastLit = -1;
+  let scrolled: boolean | null = null;
+
+  // Every value is read first and written after, so a frame costs one layout at
+  // most; and each variable is set on the one element that uses it, never on
+  // <html> (which would restyle the whole page on every frame).
   const update = () => {
     ticking = false;
     const y = scrollY;
     const vh = innerHeight;
     const max = root.scrollHeight - vh;
-    root.style.setProperty('--progress', String(max > 0 ? y / max : 0));
-    nav?.classList.toggle('is-scrolled', y > 24);
+
+    const tlRect = timeline?.getBoundingClientRect();
+    const caseTops = cases.map((card) => card.getBoundingClientRect().top);
+    const caseHeights = cases.map((card) => card.offsetHeight);
+    const stRect = statement && words.length ? statement.getBoundingClientRect() : null;
+    const footRect = footer?.getBoundingClientRect();
+
+    progressBar?.style.setProperty('--progress', (max > 0 ? y / max : 0).toFixed(4));
+    if (scrolled !== y > 24) {
+      scrolled = y > 24;
+      nav?.classList.toggle('is-scrolled', scrolled);
+    }
 
     // Career line draws itself as the list scrolls through.
-    if (timeline) {
-      const rect = timeline.getBoundingClientRect();
-      timeline.style.setProperty('--tl', String(clamp((vh * 0.72 - rect.top) / rect.height)));
+    if (timeline && tlRect && tlRect.bottom > -vh && tlRect.top < vh * 2) {
+      timeline.style.setProperty('--tl', clamp((vh * 0.72 - tlRect.top) / tlRect.height).toFixed(4));
     }
 
     // Stacked case studies: a card recedes slightly as the next one slides over it.
-    cases.forEach((card, i) => {
-      const next = cases[i + 1];
-      if (!next) return;
-      const top = card.getBoundingClientRect().top;
-      const nextTop = next.getBoundingClientRect().top;
-      const distance = card.offsetHeight;
-      card.style.setProperty('--p', String(clamp(1 - (nextTop - top) / distance)));
-    });
-
-    // The about statement fills in word by word.
-    if (statement && words.length) {
-      const rect = statement.getBoundingClientRect();
-      const progress = clamp((vh * 0.86 - rect.top) / (rect.height + vh * 0.36));
-      const lit = Math.round(progress * words.length);
-      words.forEach((word, i) => word.classList.toggle('on', i < lit));
+    for (let i = 0; i < cases.length - 1; i++) {
+      const p = clamp(1 - (caseTops[i + 1] - caseTops[i]) / caseHeights[i]).toFixed(3);
+      if (cases[i].style.getPropertyValue('--p') !== p) cases[i].style.setProperty('--p', p);
     }
 
-    if (footer) {
-      const rect = footer.getBoundingClientRect();
-      footer.style.setProperty('--foot', String(clamp((vh - rect.top) / Math.max(rect.height, 1))));
+    // The about statement fills in word by word; only the words that change are touched.
+    if (statement && stRect) {
+      const progress = clamp((vh * 0.86 - stRect.top) / (stRect.height + vh * 0.36));
+      const lit = Math.round(progress * words.length);
+      if (lit !== lastLit) {
+        const from = lastLit < 0 ? 0 : Math.min(lit, lastLit);
+        const to = lastLit < 0 ? words.length : Math.max(lit, lastLit);
+        for (let i = from; i < to; i++) words[i].classList.toggle('on', i < lit);
+        lastLit = lit;
+      }
+    }
+
+    if (footer && footRect && footRect.top < vh) {
+      footer.style.setProperty('--foot', clamp((vh - footRect.top) / Math.max(footRect.height, 1)).toFixed(4));
     }
   };
 
@@ -189,21 +204,56 @@ function initPointer() {
 
   const hero = $('[data-hero]');
   const glow = $('.glow-a', hero ?? document);
+  let heroEvent: PointerEvent | null = null;
   hero?.addEventListener('pointermove', (e) => {
-    const rect = hero.getBoundingClientRect();
-    glow?.style.setProperty('--mx', `${((e.clientX - rect.left) / rect.width - 0.5) * 90}px`);
-    glow?.style.setProperty('--my', `${((e.clientY - rect.top) / rect.height - 0.5) * 60}px`);
+    if (!heroEvent) {
+      requestAnimationFrame(() => {
+        const ev = heroEvent;
+        heroEvent = null;
+        if (!ev) return;
+        const rect = hero.getBoundingClientRect();
+        glow?.style.setProperty('--mx', `${(((ev.clientX - rect.left) / rect.width - 0.5) * 90).toFixed(1)}px`);
+        glow?.style.setProperty('--my', `${(((ev.clientY - rect.top) / rect.height - 0.5) * 60).toFixed(1)}px`);
+      });
+    }
+    heroEvent = e;
   });
 
   $$('.magnetic').forEach((btn) => {
+    let pending: PointerEvent | null = null;
+    let rect: DOMRect | null = null;
+    btn.addEventListener('pointerenter', () => (rect = btn.getBoundingClientRect()));
     btn.addEventListener('pointermove', (e) => {
-      const rect = btn.getBoundingClientRect();
-      const x = e.clientX - rect.left - rect.width / 2;
-      const y = e.clientY - rect.top - rect.height / 2;
-      btn.style.transform = `translate(${x * 0.16}px, ${y * 0.26}px)`;
+      if (!pending) {
+        requestAnimationFrame(() => {
+          const ev = pending;
+          pending = null;
+          if (!ev || !rect) return;
+          const x = ev.clientX - rect.left - rect.width / 2;
+          const y = ev.clientY - rect.top - rect.height / 2;
+          btn.style.transform = `translate(${(x * 0.16).toFixed(1)}px, ${(y * 0.26).toFixed(1)}px)`;
+        });
+      }
+      pending = e;
     });
-    btn.addEventListener('pointerleave', () => (btn.style.transform = ''));
+    btn.addEventListener('pointerleave', () => {
+      pending = null;
+      btn.style.transform = '';
+    });
   });
+}
+
+/* -------------------------------------------------- pause off-screen loops */
+/** Looping CSS animations (spinners, marquee, glows) pause outside the viewport. */
+function initOffscreenPause() {
+  if (!('IntersectionObserver' in window)) return;
+  const io = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) entry.target.classList.toggle('is-offscreen', !entry.isIntersecting);
+    },
+    { rootMargin: '120px 0px' },
+  );
+  $$('main > section, main > div, .footer').forEach((el) => io.observe(el));
 }
 
 /* ------------------------------------------------------------- local time */
@@ -483,6 +533,7 @@ function boot() {
   initScroll();
   initActiveSection();
   initPointer();
+  initOffscreenPause();
   initClock();
   initMenu();
   initCopy();
