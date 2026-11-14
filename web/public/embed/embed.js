@@ -75,18 +75,28 @@
     'button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}',
     'svg{width:20px;height:20px;display:block}',
 
-    /* launcher */
-    '.launcher{order:2;display:flex;align-items:center;gap:10px;height:52px;padding:0 20px 0 16px;border-radius:999px;background:var(--accent);color:var(--on-accent);font-weight:600;letter-spacing:-.01em;',
-    'box-shadow:var(--shadow);transition:transform .4s var(--ease),padding .4s var(--ease),width .4s var(--ease),background-color .3s}',
-    '.launcher:hover{transform:translateY(-2px)}',
-    '.launcher:active{transform:scale(.96)}',
-    '.launcher .dot{position:relative;width:9px;height:9px;border-radius:50%;background:var(--on-accent)}',
-    '.launcher .dot::after{content:"";position:absolute;inset:0;border-radius:50%;background:var(--on-accent);animation:ping 2s var(--ease) infinite}',
-    '@keyframes ping{from{transform:scale(1);opacity:.8}to{transform:scale(3);opacity:0}}',
-    '.launcher .ico{display:none}',
-    '.is-open .launcher{padding:0;width:52px;justify-content:center}',
-    '.is-open .launcher .label,.is-open .launcher .dot{display:none}',
-    '.is-open .launcher .ico{display:block}',
+    /* launcher: a round icon button, with a hand that waves now and then */
+    '.dock{order:2;position:relative;display:flex}',
+    '.launcher{position:relative;display:grid;place-items:center;width:56px;height:56px;border-radius:50%;background:var(--accent);color:var(--on-accent);',
+    'box-shadow:var(--shadow);transition:transform .4s var(--ease),background-color .3s}',
+    '.launcher:hover{transform:translateY(-2px) scale(1.04)}',
+    '.launcher:active{transform:scale(.94)}',
+    '.launcher svg{width:24px;height:24px}',
+    '.launcher .ico{position:absolute;inset:0;display:grid;place-items:center;transition:transform .45s var(--ease),opacity .25s}',
+    '.launcher .ico-close{opacity:0;transform:rotate(-90deg) scale(.6)}',
+    '.is-open .launcher .ico-chat{opacity:0;transform:rotate(90deg) scale(.6)}',
+    '.is-open .launcher .ico-close{opacity:1;transform:none}',
+    '.launcher .dot{position:absolute;top:3px;' + otherSide + ':3px;width:12px;height:12px;border-radius:50%;background:#22c55e;border:2px solid var(--bg)}',
+    '.launcher .dot::after{content:"";position:absolute;inset:-2px;border-radius:50%;background:#22c55e;animation:ping 2s var(--ease) infinite}',
+    '@keyframes ping{from{transform:scale(1);opacity:.7}to{transform:scale(2.6);opacity:0}}',
+    '.is-open .launcher .dot{display:none}',
+    '.wave{position:absolute;bottom:8px;' + side + ':calc(100% + 10px);display:grid;place-items:center;width:40px;height:40px;border-radius:50%;',
+    'background:var(--bg);box-shadow:var(--shadow);font-size:22px;line-height:1;pointer-events:none;',
+    'opacity:0;transform:translateX(' + (side === 'left' ? '-' : '') + '10px) scale(.6);transition:opacity .3s var(--ease),transform .45s var(--ease)}',
+    '.wave span{display:block;transform-origin:70% 75%}',
+    '.wave.on{opacity:1;transform:none}',
+    '.wave.on span{animation:wave 1.6s ease-in-out}',
+    '@keyframes wave{0%,100%{transform:rotate(0)}10%,30%,50%{transform:rotate(18deg)}20%,40%{transform:rotate(-10deg)}60%{transform:rotate(0)}}',
 
     /* panel: animates open from the launcher's corner */
     '.panel{order:1;display:flex;flex-direction:column;width:min(380px,calc(100vw - 32px));height:min(600px,calc(100dvh - 104px));',
@@ -94,7 +104,7 @@
     'transform-origin:bottom ' + side + ';opacity:0;transform:translateY(16px) scale(.94);visibility:hidden;pointer-events:none;',
     'transition:opacity .28s var(--ease),transform .45s var(--ease),visibility 0s linear .45s}',
     '.is-open .panel{opacity:1;transform:none;visibility:visible;pointer-events:auto;transition:opacity .3s var(--ease),transform .5s var(--ease),visibility 0s}',
-    '@media (prefers-reduced-motion:reduce){.panel,.launcher,.stage{transition:none!important}.launcher .dot::after{animation:none}}',
+    '@media (prefers-reduced-motion:reduce){.panel,.launcher,.launcher .ico,.wave,.stage{transition:none!important}.launcher .dot::after,.wave.on span{animation:none}}',
 
     'header{display:flex;align-items:center;gap:10px;padding:14px 14px 10px 18px}',
     'header .titles{flex:1;min-width:0}',
@@ -161,14 +171,15 @@
     '<button class="round mic" type="button" aria-pressed="false" aria-label="Mute microphone" title="Mute microphone">' + icon('mic') + '</button>' +
     '<button class="round end" type="button" aria-label="End conversation" title="End conversation">' + icon('end') + '</button>' +
     '</div></footer></section>' +
-    '<button class="launcher" type="button" aria-expanded="false">' +
-    '<span class="dot" aria-hidden="true"></span><span class="label">Talk to my AI assistant</span>' +
-    '<span class="ico">' + icon('chevron') + '</span></button>' +
+    '<div class="dock"><span class="wave" aria-hidden="true"><span>\uD83D\uDC4B</span></span>' +
+    '<button class="launcher" type="button" aria-expanded="false" aria-label="Talk to my AI assistant" title="Talk to my AI assistant">' +
+    '<span class="ico ico-chat">' + icon('chat') + '</span><span class="ico ico-close">' + icon('chevron') + '</span>' +
+    '<span class="dot" aria-hidden="true"></span></button></div>' +
     '</div>';
 
   function $(sel) { return root.querySelector(sel); }
   var wrap = $('.wrap'), panel = $('.panel'), log = $('.log'), startBtn = $('.start'), input = $('input'),
-    sendBtn = $('.send'), micBtn = $('.mic'), launcher = $('.launcher'), stateEl = $('.state'),
+    sendBtn = $('.send'), micBtn = $('.mic'), launcher = $('.launcher'), wave = $('.wave'), stateEl = $('.state'),
     statusText = $('.status-text'), canvas = $('canvas');
   $('header strong').textContent = config.title;
 
@@ -499,6 +510,8 @@
     wrap.classList.toggle('is-open', open);
     launcher.setAttribute('aria-expanded', String(open));
     launcher.setAttribute('aria-label', open ? 'Close assistant' : 'Talk to my AI assistant');
+    launcher.title = open ? 'Close assistant' : 'Talk to my AI assistant';
+    if (open) wave.classList.remove('on');
     panel.setAttribute('aria-hidden', String(!open));
     if (open) {
       if (aura) aura.play();
@@ -658,6 +671,14 @@
   }
 
   launcher.addEventListener('click', function () { setOpen(!wrap.classList.contains('is-open')); });
+
+  // Every 10 seconds, while the panel is closed and the tab is visible, a hand
+  // waves beside the launcher for 2 seconds.
+  setInterval(function () {
+    if (wrap.classList.contains('is-open') || document.hidden) return;
+    wave.classList.add('on');
+    setTimeout(function () { wave.classList.remove('on'); }, 2000);
+  }, 10000);
   $('.close').addEventListener('click', function () { setOpen(false); });
   startBtn.addEventListener('click', start);
   $('.end').addEventListener('click', stop);

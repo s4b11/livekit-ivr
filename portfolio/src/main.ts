@@ -422,6 +422,7 @@ function initCallPreview() {
 
 /* --------------------------------------------------------- voice assistant */
 let widgetPromise: Promise<void> | null = null;
+let heroInView = false;
 
 function loadAssistant(): Promise<void> {
   if (window.VoiceAssistant) return Promise.resolve();
@@ -432,7 +433,10 @@ function loadAssistant(): Promise<void> {
     script.dataset.title = "Sabith's AI assistant";
     script.dataset.accent = LAVENDER;
     script.dataset.theme = 'light';
-    script.onload = () => resolve();
+    script.onload = () => {
+      document.getElementById('voice-assistant-widget')?.toggleAttribute('data-hero', heroInView);
+      resolve();
+    };
     script.onerror = () => {
       widgetPromise = null;
       reject(new Error('assistant unavailable'));
@@ -454,6 +458,15 @@ function initAssistant() {
       }
     }),
   );
+  // On a phone the launcher sits over the hero's buttons, so it steps aside while
+  // they are on screen (see #voice-assistant-widget[data-hero] in styles.css).
+  const cta = $('.hero-cta');
+  if (cta && 'IntersectionObserver' in window) {
+    new IntersectionObserver(([entry]) => {
+      heroInView = entry.isIntersecting;
+      document.getElementById('voice-assistant-widget')?.toggleAttribute('data-hero', heroInView);
+    }).observe(cta);
+  }
   // Load the widget quietly once the page is idle, so its launcher appears without
   // competing with the first paint.
   const idle = (cb: () => void) =>

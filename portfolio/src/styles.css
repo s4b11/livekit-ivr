@@ -51,6 +51,46 @@ html {
   text-size-adjust: 100%;
 }
 
+/* Scrollbar: a slim lavender pill on a clear track. Chrome, Edge and Safari use the
+   ::-webkit-scrollbar rules; Firefox, which has no such pseudo-elements, gets the
+   standard colour properties instead (Chrome would let those override the pill). */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--lav-300);
+  border: 3px solid var(--white);
+  border-radius: 999px;
+  min-height: 48px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--lav-500);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: var(--lav-600);
+}
+
+::-webkit-scrollbar-button,
+::-webkit-scrollbar-corner {
+  display: none;
+  background: transparent;
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--lav-300) transparent;
+  }
+}
+
 body {
   margin: 0;
   background: var(--white);
@@ -2276,11 +2316,16 @@ h2 em {
   opacity: 1;
 }
 
-/* The assistant widget's floating launcher would cover the hero buttons on a
-   phone; there it appears once the visitor starts a conversation. */
+/* The assistant's round launcher would sit over the hero buttons on a phone, so it
+   fades out while they are on screen, until a conversation has started. */
+#voice-assistant-widget {
+  transition: opacity 0.35s var(--ease);
+}
+
 @media (max-width: 640px) {
-  #voice-assistant-widget:not([data-engaged]) {
-    display: none;
+  #voice-assistant-widget[data-hero]:not([data-engaged]) {
+    opacity: 0;
+    pointer-events: none;
   }
 }
 
