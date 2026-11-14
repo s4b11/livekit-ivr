@@ -3,18 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>Sabith S B — Voice AI &amp; Backend Engineer</title>
+    <title>Sabith S B — Backend &amp; AI Systems Engineer</title>
     <meta
       name="description"
-      content="Sabith S B builds real-time voice AI agents, LLM retrieval tools, and the Python and Rust backends behind them. Based in Kollam, Kerala."
+      content="Sabith S B designs backend systems, AI agents and automated workflows — from architecture and APIs to the agents, voice and web interfaces on top. Based in Kollam, Kerala."
     />
     <meta name="author" content="Sabith S B" />
     <meta name="theme-color" content="#ffffff" />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Sabith S B — Voice AI &amp; Backend Engineer" />
+    <meta property="og:title" content="Sabith S B — Backend &amp; AI Systems Engineer" />
     <meta
       property="og:description"
-      content="Real-time voice agents, grounded retrieval, and the backends behind them."
+      content="Backend systems, AI agents and automated workflows, designed end to end."
     />
     <meta property="og:image" content="/og.png" />
     <meta name="twitter:card" content="summary_large_image" />
@@ -43,9 +43,6 @@
         </ul>
       </nav>
       <div class="nav-actions">
-        <button class="btn btn-accent btn-sm" type="button" data-talk>
-          <span class="live-dot" aria-hidden="true"></span>Talk to my AI
-        </button>
         <button class="menu-btn" type="button" data-menu aria-expanded="false" aria-controls="mobile-menu" aria-label="Open menu">
           <span></span><span></span>
         </button>
@@ -82,62 +79,94 @@
             </p>
 
             <h1 class="hero-title" data-split>
-              I build voice agents that <em>listen</em>, retrieval that <em>cites</em>, and backends that <em>hold</em>.
+              I build backends that <em>hold</em>, agents that <em>act</em>, and workflows that <em>run</em>.
             </h1>
 
             <p class="hero-lede reveal" style="--i: 5">
-              I’m <strong>Sabith S B</strong>, a software developer working on real-time voice AI at IoTides —
-              turn-taking, interruptions, latency you can measure — and on small, readable open-source tools in
-              Python and Rust.
+              I’m <strong>Sabith S B</strong>, a software developer who designs systems end to end — the
+              architecture, APIs and data underneath, the AI agents and automations that run on them, and the
+              web and voice interfaces on top. Mostly in Python and Rust.
             </p>
 
             <div class="hero-cta reveal" style="--i: 6">
-              <button class="btn btn-accent btn-lg magnetic" type="button" data-talk>
-                <i data-icon="line:mic"></i>Talk to my AI assistant
-              </button>
-              <a class="btn btn-ghost btn-lg magnetic" href="#work">
+              <a class="btn btn-accent btn-lg magnetic" href="#work">
                 Selected work<i data-icon="line:arrow-down"></i>
+              </a>
+              <a class="btn btn-ghost btn-lg magnetic" href="#contact">
+                <i data-icon="line:mail"></i>Get in touch
               </a>
             </div>
 
             <ul class="hero-facts reveal" style="--i: 7">
-              <li><i data-icon="line:briefcase"></i>Voice AI at IoTides</li>
+              <li><i data-icon="line:layers"></i>Backend · AI agents · Automation</li>
               <li><i data-icon="line:code"></i>Python · Rust</li>
               <li><i data-icon="line:pin"></i>Kollam, Kerala</li>
             </ul>
           </div>
 
-          <!-- A scripted preview of the assistant; the button starts a real conversation. -->
-          <div class="call reveal" style="--i: 3" data-call>
+          <!-- How I build: a small system, animated. The button starts a real conversation. -->
+          <div class="call sys reveal" style="--i: 3" data-call>
             <div class="call-head">
-              <span class="call-avatar" aria-hidden="true"></span>
+              <span class="sys-mark" aria-hidden="true"><i data-icon="line:layers"></i></span>
               <div class="call-who">
-                <strong>Sabith’s AI assistant</strong>
-                <span>Scripted preview</span>
+                <strong>How I build</strong>
+                <span>Architecture · agents · automation</span>
               </div>
-              <span class="call-time mono" data-call-time aria-hidden="true">0:00</span>
+              <span class="sys-live mono" aria-hidden="true"><span></span>running</span>
             </div>
-            <div class="call-stage" data-call-stage>
-              <canvas data-aura aria-hidden="true"></canvas>
-              <span class="call-orb" aria-hidden="true"></span>
-              <span class="call-state mono" data-call-state aria-hidden="true">Listening</span>
+
+            <div class="sys-board" aria-hidden="true">
+              <span class="sys-node" style="--d: 0"><i data-icon="line:globe"></i>Web &amp; API</span>
+              <span class="sys-node" style="--d: 1"><i data-icon="line:mic"></i>Voice</span>
+              <span class="sys-node" style="--d: 2"><i data-icon="line:bolt"></i>Events</span>
+
+              <span class="sys-link"><i style="--d: 0"></i></span>
+              <span class="sys-link"><i style="--d: 1"></i></span>
+              <span class="sys-link"><i style="--d: 2"></i></span>
+
+              <span class="sys-hub">
+                <span class="sys-hub-ico"><i data-icon="line:sparkle"></i></span>
+                <span class="sys-hub-text"><b>AI agent</b><small>tools · memory · guardrails</small></span>
+              </span>
+
+              <span class="sys-link sys-link-out"><i style="--d: 1"></i></span>
+              <span class="sys-link sys-link-out"><i style="--d: 2"></i></span>
+              <span class="sys-link sys-link-out"><i style="--d: 0"></i></span>
+
+              <span class="sys-node" style="--d: 4"><i data-icon="line:list"></i>Workflows</span>
+              <span class="sys-node" style="--d: 5"><i data-icon="line:braces"></i>Services</span>
+              <span class="sys-node" style="--d: 3"><i data-icon="line:database"></i>Data</span>
             </div>
-            <div class="call-log" data-call-log aria-hidden="true"></div>
+
+            <div class="sys-log mono" aria-hidden="true">
+              <div class="sys-log-track">
+                <p><b class="in">→</b>POST /v1/sessions<span>201 · 41ms</span></p>
+                <p><b>✓</b>agent.tool search_docs<span>ok</span></p>
+                <p><b class="in">→</b>workflow lead.intake<span>queued</span></p>
+                <p><b>✓</b>worker invoice.sync<span>done</span></p>
+                <p><b class="in">→</b>event order.created<span>3 subscribers</span></p>
+                <p><b>✓</b>eval answer.grounded<span>0.94</span></p>
+                <p><b class="in">→</b>POST /v1/sessions<span>201 · 41ms</span></p>
+                <p><b>✓</b>agent.tool search_docs<span>ok</span></p>
+                <p><b class="in">→</b>workflow lead.intake<span>queued</span></p>
+              </div>
+            </div>
             <p class="sr-only">
-              Preview of a conversation: a visitor asks who Sabith is, and the assistant answers that he builds
-              real-time voice agents, retrieval tools, and backends, and offers to take a message.
+              An illustration of the systems I build: web, voice and event inputs flow into an AI agent with
+              tools, memory and guardrails, which drives workflows, services and data.
             </p>
+
             <button class="btn btn-accent call-btn" type="button" data-talk>
-              <i data-icon="line:mic"></i>Start a real conversation
+              <i data-icon="line:mic"></i>Talk to my AI agent
             </button>
-            <p class="call-note">90-second voice chat · LiveKit + Gemini Live</p>
+            <p class="call-note">A 90-second voice chat with my personal agent</p>
           </div>
         </div>
 
         <div class="marquee" aria-hidden="true">
           <div class="marquee-track">
-            <span><i data-icon="livekit"></i>LiveKit Agents</span><span><i data-icon="googlegemini"></i>Gemini Live</span><span><i data-icon="line:phone"></i>SIP telephony</span><span><i data-icon="webrtc"></i>WebRTC</span><span><i data-icon="fastapi"></i>FastAPI</span><span><i data-icon="rust"></i>Rust</span><span><i data-icon="python"></i>Python</span><span><i data-icon="line:search"></i>RAG + hybrid search</span><span><i data-icon="cloudflare"></i>Cloudflare</span><span><i data-icon="postgresql"></i>PostgreSQL</span><span><i data-icon="webassembly"></i>WebAssembly</span><span><i data-icon="docker"></i>Docker</span>
-            <span><i data-icon="livekit"></i>LiveKit Agents</span><span><i data-icon="googlegemini"></i>Gemini Live</span><span><i data-icon="line:phone"></i>SIP telephony</span><span><i data-icon="webrtc"></i>WebRTC</span><span><i data-icon="fastapi"></i>FastAPI</span><span><i data-icon="rust"></i>Rust</span><span><i data-icon="python"></i>Python</span><span><i data-icon="line:search"></i>RAG + hybrid search</span><span><i data-icon="cloudflare"></i>Cloudflare</span><span><i data-icon="postgresql"></i>PostgreSQL</span><span><i data-icon="webassembly"></i>WebAssembly</span><span><i data-icon="docker"></i>Docker</span>
+            <span><i data-icon="line:layers"></i>System design</span><span><i data-icon="line:sparkle"></i>AI agents</span><span><i data-icon="line:list"></i>Workflow automation</span><span><i data-icon="fastapi"></i>FastAPI</span><span><i data-icon="rust"></i>Rust</span><span><i data-icon="python"></i>Python</span><span><i data-icon="line:plug"></i>MCP</span><span><i data-icon="line:search"></i>RAG + hybrid search</span><span><i data-icon="apachekafka"></i>Kafka</span><span><i data-icon="postgresql"></i>PostgreSQL</span><span><i data-icon="redis"></i>Redis</span><span><i data-icon="livekit"></i>LiveKit Agents</span><span><i data-icon="cloudflare"></i>Cloudflare</span><span><i data-icon="docker"></i>Docker</span><span><i data-icon="githubactions"></i>GitHub Actions</span>
+            <span><i data-icon="line:layers"></i>System design</span><span><i data-icon="line:sparkle"></i>AI agents</span><span><i data-icon="line:list"></i>Workflow automation</span><span><i data-icon="fastapi"></i>FastAPI</span><span><i data-icon="rust"></i>Rust</span><span><i data-icon="python"></i>Python</span><span><i data-icon="line:plug"></i>MCP</span><span><i data-icon="line:search"></i>RAG + hybrid search</span><span><i data-icon="apachekafka"></i>Kafka</span><span><i data-icon="postgresql"></i>PostgreSQL</span><span><i data-icon="redis"></i>Redis</span><span><i data-icon="livekit"></i>LiveKit Agents</span><span><i data-icon="cloudflare"></i>Cloudflare</span><span><i data-icon="docker"></i>Docker</span><span><i data-icon="githubactions"></i>GitHub Actions</span>
           </div>
         </div>
       </section>
@@ -194,7 +223,7 @@
             <article class="tile tile-open reveal" style="--i: 3">
               <p class="tile-label"><span class="dot" aria-hidden="true"></span>Available</p>
               <h3>Selected freelance projects</h3>
-              <p class="tile-text">Voice AI agents, RAG and LLM tools, API and backend work.</p>
+              <p class="tile-text">Backend and API design, AI agents and RAG, workflow automation, and voice agents.</p>
               <a class="tile-link" href="#contact">Start a conversation<i data-icon="line:arrow-right"></i></a>
             </article>
           </div>
@@ -222,15 +251,17 @@
                     <span class="badge badge-live">Live · Open source</span>
                     <span class="case-year mono">2026</span>
                   </div>
-                  <h3>Personal AI Voice Assistant</h3>
+                  <h3>Personal AI Agent</h3>
                   <p class="case-desc">
-                    A speech-to-speech agent that answers in Indian English, introduces my work, and takes
-                    messages. One agent serves a SIP phone line, a React voice UI, and the widget on this page.
+                    My own agent: it introduces my work, answers questions about it, and takes messages. It
+                    began as a Malayalam-speaking phone receptionist and grew into a single English agent that
+                    serves a SIP phone line, a React voice UI, and the widget on this page.
                   </p>
                   <ul class="case-points">
                     <li>Cloudflare Worker mints LiveKit tokens and stores transcripts in D1</li>
                     <li>Agent ↔ Worker payload contract-tested from Python and TypeScript</li>
                     <li>Every deploy is gated by a live Gemini session check in CI</li>
+                    <li>Limits built in: 90-second sessions and a daily allowance per visitor</li>
                   </ul>
                   <ul class="chips chips-sm">
                     <li><i data-icon="livekit"></i>LiveKit Agents</li>
@@ -386,21 +417,13 @@
           <ul class="more">
             <li class="reveal">
               <div class="more-main">
-                <h4>Malayalam Phone Reception Agent</h4>
-                <p>A receptionist on a real phone number that spoke only Malayalam, took messages, and stored every transcript — the starting point of my assistant.</p>
-              </div>
-              <span class="more-stack">LiveKit SIP · Gemini Live · FastAPI</span>
-              <span class="badge">Proof of concept · IoTides · 2026</span>
-            </li>
-            <li class="reveal" style="--i: 1">
-              <div class="more-main">
                 <h4>Warehouse Management — Masters module</h4>
                 <p>The ASP.NET Core backend for the Masters module of an enterprise WMS during a legacy-to-modern migration, plus workflow diagrams for the whole system.</p>
               </div>
               <span class="more-stack">ASP.NET Core · C# · SQL Server</span>
               <span class="badge">Internship · VCNR · 2025</span>
             </li>
-            <li class="reveal" style="--i: 2">
+            <li class="reveal" style="--i: 1">
               <div class="more-main">
                 <h4>Infant Guard</h4>
                 <p>A newborn-care web app prototype with role-based dashboards, vaccination scheduling, alerts, and doctor-approved nutrition plans. Never used with real patients.</p>
@@ -417,9 +440,9 @@
         <div class="wrap xp">
           <header class="xp-side">
             <p class="kicker reveal"><span>02</span>Career</p>
-            <h2 class="reveal" style="--i: 1">From warehouses to <em>voices.</em></h2>
+            <h2 class="reveal" style="--i: 1">From warehouses to <em>agents.</em></h2>
             <p class="section-lede reveal" style="--i: 2">
-              A year of production voice AI, an internship in enterprise backends, and a degree in between.
+              Production AI systems, an internship in enterprise backends, and a degree in between.
             </p>
           </header>
 
@@ -461,26 +484,26 @@
         <div class="wrap">
           <p class="kicker reveal"><span>03</span>About</p>
           <p class="statement" data-fill>
-            Most of my work is conversational voice AI: making an agent take turns naturally, hear domain terms
-            correctly, and answer without long silences — then measuring it, so problems show up in data instead
-            of in a live conversation.
+            I like owning a system end to end: drawing the architecture, designing the APIs and data, building
+            the agents and automations that do the work, and putting a clear interface on top — then measuring
+            it, so problems show up in data instead of in production.
           </p>
 
           <div class="principles">
             <article class="principle reveal">
               <span class="principle-n mono">A</span>
-              <h3>Measure, then fix</h3>
-              <p>Per-turn timing and transcripts first. A fix only counts when the numbers move.</p>
+              <h3>Design first</h3>
+              <p>Diagrams, contracts and failure modes before code, so the system has a shape everyone can see.</p>
             </article>
             <article class="principle reveal" style="--i: 1">
               <span class="principle-n mono">B</span>
-              <h3>Ground every answer</h3>
-              <p>Retrieval that cites its sources, and prompts that refuse to invent what they don’t know.</p>
+              <h3>Measure, then fix</h3>
+              <p>Timing, logs and evals first. A fix only counts when the numbers move.</p>
             </article>
             <article class="principle reveal" style="--i: 2">
               <span class="principle-n mono">C</span>
-              <h3>Small, readable systems</h3>
-              <p>Open-source tools that test one idea end to end, in code someone else can follow.</p>
+              <h3>Automate the boring parts</h3>
+              <p>Workflows, agents and CI/CD that do the repeatable work, with a human approving what matters.</p>
             </article>
           </div>
         </div>
@@ -498,6 +521,10 @@
             <div class="tool-row reveal">
               <dt><span class="tool-ico"><i data-icon="line:braces"></i></span>Core languages</dt>
               <dd><ul class="chips"><li><i data-icon="python"></i>Python</li><li><i data-icon="rust"></i>Rust</li><li><i data-icon="typescript"></i>TypeScript</li><li><i data-icon="javascript"></i>JavaScript</li><li><i data-icon="dotnet"></i>C# / .NET</li><li><i data-icon="line:database"></i>SQL</li></ul></dd>
+            </div>
+            <div class="tool-row reveal">
+              <dt><span class="tool-ico"><i data-icon="line:layers"></i></span>Systems &amp; automation</dt>
+              <dd><ul class="chips"><li><i data-icon="line:layers"></i>System design</li><li><i data-icon="line:bolt"></i>Event-driven architecture</li><li><i data-icon="line:list"></i>Workflow automation</li><li><i data-icon="line:sparkle"></i>Multi-agent orchestration</li><li><i data-icon="line:plug"></i>MCP servers</li><li><i data-icon="githubactions"></i>CI/CD pipelines</li></ul></dd>
             </div>
             <div class="tool-row reveal">
               <dt><span class="tool-ico"><i data-icon="line:mic"></i></span>Voice &amp; real-time</dt>
@@ -561,16 +588,16 @@
             <p class="kicker kicker-light"><span>06</span>Contact</p>
             <h2>A good idea starts with a <em>conversation.</em></h2>
             <p class="contact-lede">
-              I take on selected freelance projects alongside my role at IoTides — voice AI agents, RAG and
-              LLM tools, and Python or Rust backends. Email is the fastest way to reach me. Or just talk to my
-              assistant; it takes messages.
+              I take on selected freelance projects alongside my full-time role — backend and system design,
+              AI agents and automations, and Python or Rust services. Email is the fastest way to reach me. Or
+              just talk to my agent; it takes messages.
             </p>
             <div class="contact-actions">
               <button class="btn btn-white btn-lg magnetic" type="button" data-copy="saabith.sb@gmail.com">
                 <i data-icon="line:mail"></i><span>saabith.sb@gmail.com</span><i data-icon="line:copy"></i>
               </button>
               <button class="btn btn-outline-white btn-lg magnetic" type="button" data-talk>
-                <i data-icon="line:mic"></i>Talk to my assistant
+                <i data-icon="line:mic"></i>Talk to my agent
               </button>
             </div>
             <ul class="socials">
@@ -588,7 +615,6 @@
         <p class="wordmark" aria-hidden="true">Sabith S B</p>
         <div class="footer-row">
           <span>© <span data-year>2026</span> Sabith S B · Kollam, Kerala, India</span>
-          <span class="footer-dim">Hand-built, no framework. Voice by LiveKit + Gemini.</span>
           <a href="#top">Back to top<i data-icon="line:arrow-ur"></i></a>
         </div>
       </div>

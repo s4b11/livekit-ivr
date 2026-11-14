@@ -75,7 +75,7 @@
     'button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}',
     'svg{width:20px;height:20px;display:block}',
 
-    /* launcher: a round agent button with a hand badge that waves now and then */
+    /* launcher: a round agent button; a hand pops up and waves now and then */
     '.dock{order:2;position:relative;display:flex}',
     '.launcher{position:relative;display:grid;place-items:center;width:56px;height:56px;border-radius:50%;background:var(--accent);color:var(--on-accent);',
     'box-shadow:var(--shadow);transition:transform .4s var(--ease),background-color .3s}',
@@ -89,9 +89,9 @@
     '.wave{position:absolute;top:-8px;' + otherSide + ':-6px;font-size:20px;line-height:1;pointer-events:none;',
     'filter:drop-shadow(0 1px 2px rgba(20,24,40,.25));transition:opacity .3s var(--ease),transform .45s var(--ease)}',
     '.wave span{display:block;transform-origin:70% 75%}',
-    '.wave.on{transform:scale(1.15)}',
+    '.wave{opacity:0;transform:scale(.4) rotate(-20deg)}',
+    '.wave.on{opacity:1;transform:none}',
     '.wave.on span{animation:wave 1.6s ease-in-out}',
-    '.is-open .wave{opacity:0;transform:scale(.4)}',
     '@keyframes wave{0%,100%{transform:rotate(0)}10%,30%,50%{transform:rotate(18deg)}20%,40%{transform:rotate(-10deg)}60%{transform:rotate(0)}}',
 
     /* panel: animates open from the launcher's corner */
@@ -693,7 +693,7 @@
   launcher.addEventListener('click', function () { setOpen(!wrap.classList.contains('is-open')); });
 
   // Every 10 seconds, while the panel is closed and the tab is visible, a hand
-  // on the launcher waves for 2 seconds.
+  // appears on the launcher, waves for 2 seconds, and disappears again.
   setInterval(function () {
     if (wrap.classList.contains('is-open') || document.hidden) return;
     wave.classList.add('on');

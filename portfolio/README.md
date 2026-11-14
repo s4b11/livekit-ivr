@@ -7,8 +7,8 @@ My personal site: a single static page, hand-built with no framework, deployed t
 - `src/styles.css` — design tokens and every layout and animation
 - `src/main.ts` — interactions: headline reveal, scroll reveals, stacking case
   studies, the fill-in statement, live local time, and the voice assistant
-- `src/aura.ts` — the Aura audio visualizer (WebGL), the same one the assistant
-  widget uses; it drives the scripted call preview in the hero
+- The hero's "How I build" card is pure CSS: a small system diagram on a square grid
+  whose packets, highlights and log only animate transform and opacity
 - `vite.config.ts` — inlines icons at build time (`<i data-icon="…">`), so no icon
   library ships to the browser
 - `public/` — favicon, social preview image, Pages `_headers`

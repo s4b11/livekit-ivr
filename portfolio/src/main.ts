@@ -1,7 +1,6 @@
 import '@fontsource-variable/inter/wght.css';
 import '@fontsource/instrument-serif/latin-400-italic.css';
 import './styles.css';
-import { createAura, type Aura, type AuraState } from './aura';
 
 /** The Cloudflare Worker that serves the voice assistant's embed widget. */
 const ASSISTANT_ORIGIN = 'https://assistant.sabiii.workers.dev';
@@ -27,7 +26,6 @@ const $$ = <T extends Element = HTMLElement>(sel: string, root: ParentNode = doc
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const finePointer = matchMedia('(hover: hover) and (pointer: fine)');
 const clamp = (v: number, lo = 0, hi = 1) => Math.min(hi, Math.max(lo, v));
-const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 /* ---------------------------------------------------------- split to words */
 /** Wraps each word in spans so it can be animated; keeps inline elements like <em>. */
@@ -328,148 +326,6 @@ function initCopy() {
   );
 }
 
-/* --------------------------------------------------- hero call preview */
-type Line = { who: 'user' | 'agent'; text: string };
-
-/** What the preview plays: the kind of thing the real assistant says. */
-const SCRIPT: Line[][] = [
-  [
-    { who: 'user', text: 'Who is Sabith?' },
-    { who: 'agent', text: 'He’s a software developer who builds real-time voice agents, retrieval tools, and the backends behind them.' },
-  ],
-  [
-    { who: 'user', text: 'What is he working on right now?' },
-    { who: 'agent', text: 'Voice AI at IoTides: natural turn-taking, and reply latency you can actually measure.' },
-  ],
-  [
-    { who: 'user', text: 'Can I leave him a message?' },
-    { who: 'agent', text: 'Of course. Tell me your name and the best way to reach you.' },
-  ],
-];
-
-const STATE_LABEL: Record<AuraState, string> = {
-  idle: 'Ready',
-  listening: 'Listening',
-  thinking: 'Thinking',
-  speaking: 'Speaking',
-};
-
-function initCallPreview() {
-  const card = $('[data-call]');
-  const stage = $('[data-call-stage]');
-  const canvas = $<HTMLCanvasElement>('[data-aura]');
-  const log = $('[data-call-log]');
-  const stateEl = $('[data-call-state]');
-  const timeEl = $('[data-call-time]');
-  if (!card || !stage || !canvas || !log || !stateEl || !timeEl) return;
-
-  const bubble = (line: Line) => {
-    const el = document.createElement('div');
-    el.className = `bubble bubble-${line.who}`;
-    log.append(el);
-    // Keep only the latest exchange so the card never grows.
-    while (log.childElementCount > 2) log.firstElementChild?.remove();
-    return el;
-  };
-
-  // Reduced motion, or no WebGL: a still picture of one exchange.
-  const aura: Aura | null = reducedMotion.matches ? null : createAura(canvas, LAVENDER);
-  if (!aura) {
-    stage.classList.add('no-gl');
-    SCRIPT[0].forEach((line) => (bubble(line).textContent = line.text));
-    stateEl.textContent = STATE_LABEL.listening;
-    return;
-  }
-
-  let visible = false;
-  let waiters: Array<() => void> = [];
-  const whenVisible = () => (visible && !document.hidden ? Promise.resolve() : new Promise<void>((r) => waiters.push(r)));
-  const wake = () => {
-    if (visible && !document.hidden) {
-      aura.play();
-      waiters.forEach((resolve) => resolve());
-      waiters = [];
-    } else {
-      aura.pause();
-    }
-  };
-  new IntersectionObserver(([entry]) => {
-    visible = entry.isIntersecting;
-    wake();
-  }).observe(card);
-  document.addEventListener('visibilitychange', wake);
-
-  let elapsed = 0;
-  setInterval(() => {
-    if (!visible || document.hidden) return;
-    elapsed = (elapsed + 1) % 90;
-    timeEl.textContent = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, '0')}`;
-  }, 1000);
-
-  const setState = (state: AuraState) => {
-    aura.setState(state);
-    stateEl.textContent = STATE_LABEL[state];
-  };
-
-  const pause = async (ms: number) => {
-    await sleep(ms);
-    await whenVisible();
-  };
-
-  // A gentle, speech-like level for the aura while the assistant "talks".
-  let speaking = 0;
-  const startSpeaking = () => {
-    const began = performance.now();
-    speaking = window.setInterval(() => {
-      const t = (performance.now() - began) / 1000;
-      aura.setVolume(clamp(0.42 + 0.3 * Math.sin(t * 9.1) * Math.sin(t * 2.3) + 0.12 * Math.sin(t * 23)));
-    }, 60);
-  };
-  const stopSpeaking = () => {
-    clearInterval(speaking);
-    aura.setVolume(0);
-  };
-
-  const run = async () => {
-    await whenVisible();
-    await pause(900);
-    for (let i = 0; ; i = (i + 1) % SCRIPT.length) {
-      const [question, answer] = SCRIPT[i];
-
-      setState('listening');
-      const q = bubble(question);
-      q.classList.add('is-typing');
-      for (const char of question.text) {
-        q.textContent += char;
-        await pause(34 + Math.random() * 30);
-      }
-      q.classList.remove('is-typing');
-      await pause(450);
-
-      setState('thinking');
-      await pause(850);
-
-      setState('speaking');
-      startSpeaking();
-      const a = bubble(answer);
-      for (const word of answer.text.split(' ')) {
-        a.textContent += (a.textContent ? ' ' : '') + word;
-        await pause(95 + Math.random() * 70);
-      }
-      await pause(500);
-      stopSpeaking();
-
-      setState('listening');
-      await pause(2400);
-      log.classList.add('is-clearing');
-      await pause(360);
-      log.replaceChildren();
-      log.classList.remove('is-clearing');
-    }
-  };
-  void run();
-}
-
 /* --------------------------------------------------------- voice assistant */
 let widgetPromise: Promise<void> | null = null;
 let heroInView = false;
@@ -537,7 +393,6 @@ function boot() {
   initClock();
   initMenu();
   initCopy();
-  initCallPreview();
   initAssistant();
 }
 

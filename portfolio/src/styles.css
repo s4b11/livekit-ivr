@@ -720,7 +720,10 @@ svg {
   color: var(--lav-500);
 }
 
-/* ------------------------------------------------------------- call card */
+/* ------------------------------------------------------- "how I build" card */
+/* A small system drawn on a faint square grid: inputs flow into an agent, which
+   drives workflows, services and data. Every loop animates transform or opacity
+   only, so the compositor runs it without repainting. */
 .call {
   position: relative;
   justify-self: center;
@@ -751,15 +754,20 @@ svg {
   gap: 12px;
 }
 
-.call-avatar {
+.sys-mark {
+  display: grid;
+  place-items: center;
   width: 38px;
   height: 38px;
   flex: none;
-  border-radius: 50%;
-  background: conic-gradient(from 210deg, var(--lav-200), var(--lav-600), var(--lav-300), var(--lav-200));
-  -webkit-mask: radial-gradient(circle, transparent 9px, #000 10px);
-  mask: radial-gradient(circle, transparent 9px, #000 10px);
-  animation: spin 9s linear infinite;
+  border-radius: 12px;
+  background: var(--lav-100);
+  color: var(--lav-700);
+}
+
+.sys-mark .ico {
+  width: 20px;
+  height: 20px;
 }
 
 .call-who {
@@ -780,119 +788,260 @@ svg {
   font-size: 0.78em;
 }
 
-.call-time {
+.sys-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   padding: 4px 10px;
   border-radius: 999px;
   background: var(--lav-100);
   color: var(--lav-700);
-  font-size: 0.78em;
+  font-size: 0.74em;
 }
 
-.call-stage {
+.sys-live span {
   position: relative;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+}
+
+.sys-live span::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--green);
+  animation: ping 2s var(--ease) infinite;
+}
+
+/* The board: a 3-column grid on a faint square grid. */
+.sys-board {
   display: grid;
-  place-items: center;
-  height: 208px;
-  margin-top: 6px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: auto 30px auto 30px auto;
+  gap: 0 10px;
+  margin-top: 14px;
+  padding: 16px 14px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background-color: var(--lav-50);
+  background-image:
+    linear-gradient(rgba(108, 90, 210, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(108, 90, 210, 0.07) 1px, transparent 1px);
+  background-size: 20px 20px;
+  background-position: -1px -1px;
 }
 
-.call-stage canvas {
-  width: 196px;
-  height: 196px;
-  /* Fade the canvas edge so the shader's faint dither never reads as a square. */
-  -webkit-mask: radial-gradient(circle, #000 58%, transparent 72%);
-  mask: radial-gradient(circle, #000 58%, transparent 72%);
-}
-
-/* Shown only when WebGL is unavailable or motion is reduced. */
-.call-orb {
-  display: none;
-  position: absolute;
-  width: 112px;
-  height: 112px;
-  border: 12px solid var(--lav-400);
-  border-radius: 46% 54% 52% 48% / 50% 46% 54% 50%;
-  opacity: 0.85;
-}
-
-.no-gl canvas {
-  display: none;
-}
-
-.no-gl .call-orb {
-  display: block;
-}
-
-.call-state {
-  position: absolute;
-  bottom: 0;
-  color: var(--ink-3);
-  font-size: 0.68em;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.call-log {
+.sys-node {
+  position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  gap: 8px;
-  height: 138px;
-  margin-top: 12px;
-  overflow: hidden;
-  font-size: 0.88em;
-  line-height: 1.42;
-  transition: opacity 0.35s;
+  align-items: center;
+  gap: 5px;
+  padding: 10px 4px 9px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--white);
+  color: var(--ink-2);
+  font-size: 0.72em;
+  font-weight: 560;
+  line-height: 1.15;
+  text-align: center;
+  white-space: nowrap;
 }
 
-.call-log.is-clearing {
-  opacity: 0;
+.sys-node .ico {
+  width: 17px;
+  height: 17px;
+  color: var(--lav-600);
 }
 
-.bubble {
-  max-width: 88%;
-  padding: 8px 13px;
-  border-radius: 16px;
-  animation: rise 0.4s var(--ease) both;
-}
-
-.bubble-user {
-  align-self: flex-end;
-  background: var(--lav-600);
-  color: #fff;
-  border-bottom-right-radius: 5px;
-}
-
-.bubble-agent {
-  align-self: flex-start;
-  background: var(--lav-100);
-  color: var(--ink);
-  border-bottom-left-radius: 5px;
-}
-
-.bubble.is-typing::after {
+/* Each node lights up in turn: a lavender outline fading in and out. */
+.sys-node::after {
   content: '';
-  display: inline-block;
+  position: absolute;
+  inset: -1px;
+  border: 1.5px solid var(--lav-400);
+  border-radius: inherit;
+  opacity: 0;
+  animation: node-lit 6s ease-in-out infinite;
+  animation-delay: calc(var(--d) * 1s);
+}
+
+@keyframes node-lit {
+  0%,
+  22%,
+  100% {
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+}
+
+/* Links: a dashed line with a packet travelling down it. */
+.sys-link {
+  position: relative;
+  justify-self: center;
   width: 2px;
-  height: 1em;
-  margin-left: 2px;
-  vertical-align: -0.15em;
-  background: currentColor;
-  animation: blink 0.9s steps(2) infinite;
+  background: repeating-linear-gradient(180deg, var(--lav-300) 0 4px, transparent 4px 8px);
+  opacity: 0.9;
 }
 
-@keyframes blink {
+.sys-link i {
+  position: absolute;
+  top: -3px;
+  left: -2px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--lav-600);
+  box-shadow: 0 0 0 3px rgba(124, 106, 230, 0.18);
+  opacity: 0;
+  animation: packet 2.4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  animation-delay: calc(var(--d) * 0.8s);
+}
+
+.sys-link-out i {
+  background: var(--lav-400);
+  animation-delay: calc(var(--d) * 0.8s + 1.2s);
+}
+
+@keyframes packet {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  55% {
+    transform: translateY(30px);
+    opacity: 1;
+  }
+  62%,
+  100% {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+}
+
+/* The hub: the agent in the middle, with a soft breathing halo. */
+.sys-hub {
+  position: relative;
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: linear-gradient(120deg, var(--lav-600), var(--lav-500));
+  color: #fff;
+  box-shadow: 0 10px 26px -12px rgba(102, 84, 208, 0.7);
+}
+
+.sys-hub::before {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  z-index: -1;
+  border-radius: 18px;
+  background: var(--lav-200);
+  opacity: 0;
+  animation: halo 3s ease-in-out infinite;
+}
+
+@keyframes halo {
   50% {
-    opacity: 0;
+    opacity: 0.9;
+    transform: scale(1.02);
   }
 }
 
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
+.sys-hub-ico {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.sys-hub-ico .ico {
+  width: 19px;
+  height: 19px;
+  animation: spin 12s linear infinite;
+}
+
+.sys-hub-text {
+  display: grid;
+  line-height: 1.25;
+}
+
+.sys-hub-text b {
+  font-size: 0.92em;
+  font-weight: 650;
+}
+
+.sys-hub-text small {
+  opacity: 0.82;
+  font-size: 0.72em;
+}
+
+/* The log: three lines visible, the list stepping up one line every 2 seconds. */
+.sys-log {
+  --line-h: 24px;
+  height: calc(var(--line-h) * 3);
+  margin-top: 12px;
+  padding: 0 4px;
+  overflow: hidden;
+  font-size: 0.72em;
+  -webkit-mask: linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent);
+  mask: linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent);
+}
+
+.sys-log-track {
+  animation: log-step 12s infinite;
+}
+
+.sys-log p {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: var(--line-h);
+  margin: 0;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.sys-log b {
+  width: 1em;
+  color: var(--green);
+  font-weight: 700;
+  text-align: center;
+}
+
+.sys-log b.in {
+  color: var(--lav-600);
+}
+
+.sys-log span {
+  margin-left: auto;
+  color: var(--ink-3);
+}
+
+/* Six lines, one step every 2s: hold, then glide up by one line. */
+@keyframes log-step {
+  0%, 13% { transform: translateY(0); }
+  16.67%, 29.67% { transform: translateY(calc(var(--line-h) * -1)); }
+  33.33%, 46.33% { transform: translateY(calc(var(--line-h) * -2)); }
+  50%, 63% { transform: translateY(calc(var(--line-h) * -3)); }
+  66.67%, 79.67% { transform: translateY(calc(var(--line-h) * -4)); }
+  83.33%, 96.33% { transform: translateY(calc(var(--line-h) * -5)); }
+  100% { transform: translateY(calc(var(--line-h) * -6)); }
 }
 
 .call-btn {
@@ -906,6 +1055,19 @@ svg {
   color: var(--ink-3);
   font-size: 0.76em;
   text-align: center;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
 }
 
 /* --------------------------------------------------------------- marquee */
@@ -2255,11 +2417,13 @@ h2 em {
   letter-spacing: -0.06em;
   text-align: center;
   white-space: nowrap;
-  background: linear-gradient(180deg, var(--lav-200), rgba(224, 217, 255, 0));
+  background: linear-gradient(100deg, var(--lav-700) 0%, var(--lav-500) 38%, #b9a6ff 62%, var(--lav-300) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   user-select: none;
+  -webkit-mask: linear-gradient(180deg, #000 55%, rgba(0, 0, 0, 0.25));
+  mask: linear-gradient(180deg, #000 55%, rgba(0, 0, 0, 0.25));
   translate: 0 calc((1 - var(--foot, 1)) * 40px);
 }
 
