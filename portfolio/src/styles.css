@@ -218,17 +218,6 @@ svg {
   box-shadow: 0 0 0 4px rgba(31, 163, 90, 0.16);
 }
 
-/* ========================================================= scroll progress */
-.progress {
-  position: fixed;
-  inset: 0 0 auto;
-  height: 2px;
-  z-index: 60;
-  transform-origin: 0 50%;
-  transform: scaleX(var(--progress, 0));
-  background: linear-gradient(90deg, var(--lav-300), var(--lav-600));
-}
-
 /* ================================================================= buttons */
 .btn {
   position: relative;
@@ -583,11 +572,15 @@ svg {
   }
 }
 
-.dots {
+/* A square grid of thin lines, faint, fading out toward the edges. */
+.grid-bg {
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(rgba(108, 90, 210, 0.2) 1px, transparent 1.4px);
-  background-size: 26px 26px;
+  background-image:
+    linear-gradient(rgba(108, 90, 210, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(108, 90, 210, 0.07) 1px, transparent 1px);
+  background-size: 34px 34px;
+  background-position: center top;
   -webkit-mask: radial-gradient(ellipse 75% 65% at 60% 35%, #000 20%, transparent 72%);
   mask: radial-gradient(ellipse 75% 65% at 60% 35%, #000 20%, transparent 72%);
 }

@@ -110,10 +110,8 @@ function initScroll() {
   const statement = $('[data-fill]');
   const words = statement ? (splitWords(statement, 'w', false), $$('.w', statement)) : [];
   const footer = $('.footer');
-  const root = document.documentElement;
   let ticking = false;
 
-  const progressBar = $('.progress');
   let lastLit = -1;
   let scrolled: boolean | null = null;
 
@@ -124,7 +122,6 @@ function initScroll() {
     ticking = false;
     const y = scrollY;
     const vh = innerHeight;
-    const max = root.scrollHeight - vh;
 
     const tlRect = timeline?.getBoundingClientRect();
     const caseTops = cases.map((card) => card.getBoundingClientRect().top);
@@ -132,7 +129,6 @@ function initScroll() {
     const stRect = statement && words.length ? statement.getBoundingClientRect() : null;
     const footRect = footer?.getBoundingClientRect();
 
-    progressBar?.style.setProperty('--progress', (max > 0 ? y / max : 0).toFixed(4));
     if (scrolled !== y > 24) {
       scrolled = y > 24;
       nav?.classList.toggle('is-scrolled', scrolled);
