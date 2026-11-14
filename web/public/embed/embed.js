@@ -45,7 +45,7 @@
 
   /* ------------------------------------------------------------- icons */
   var ICONS = {
-    chat: '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.9A8 8 0 1 1 21 12Z"/>',
+    agent: '<path d="M12 8V4H8"/><rect x="4" y="8" width="16" height="12" rx="3"/><path d="M2 14h2M20 14h2M9.5 13v2M14.5 13v2"/>',
     chevron: '<path d="m6 9 6 6 6-6"/>',
     close: '<path d="M18 6 6 18M6 6l12 12"/>',
     mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',
@@ -75,7 +75,7 @@
     'button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}',
     'svg{width:20px;height:20px;display:block}',
 
-    /* launcher: a round icon button, with a hand that waves now and then */
+    /* launcher: a round agent button with a hand badge that waves now and then */
     '.dock{order:2;position:relative;display:flex}',
     '.launcher{position:relative;display:grid;place-items:center;width:56px;height:56px;border-radius:50%;background:var(--accent);color:var(--on-accent);',
     'box-shadow:var(--shadow);transition:transform .4s var(--ease),background-color .3s}',
@@ -86,16 +86,12 @@
     '.launcher .ico-close{opacity:0;transform:rotate(-90deg) scale(.6)}',
     '.is-open .launcher .ico-chat{opacity:0;transform:rotate(90deg) scale(.6)}',
     '.is-open .launcher .ico-close{opacity:1;transform:none}',
-    '.launcher .dot{position:absolute;top:3px;' + otherSide + ':3px;width:12px;height:12px;border-radius:50%;background:#22c55e;border:2px solid var(--bg)}',
-    '.launcher .dot::after{content:"";position:absolute;inset:-2px;border-radius:50%;background:#22c55e;animation:ping 2s var(--ease) infinite}',
-    '@keyframes ping{from{transform:scale(1);opacity:.7}to{transform:scale(2.6);opacity:0}}',
-    '.is-open .launcher .dot{display:none}',
-    '.wave{position:absolute;bottom:8px;' + side + ':calc(100% + 10px);display:grid;place-items:center;width:40px;height:40px;border-radius:50%;',
-    'background:var(--bg);box-shadow:var(--shadow);font-size:22px;line-height:1;pointer-events:none;',
-    'opacity:0;transform:translateX(' + (side === 'left' ? '-' : '') + '10px) scale(.6);transition:opacity .3s var(--ease),transform .45s var(--ease)}',
+    '.wave{position:absolute;top:-8px;' + otherSide + ':-6px;font-size:20px;line-height:1;pointer-events:none;',
+    'filter:drop-shadow(0 1px 2px rgba(20,24,40,.25));transition:opacity .3s var(--ease),transform .45s var(--ease)}',
     '.wave span{display:block;transform-origin:70% 75%}',
-    '.wave.on{opacity:1;transform:none}',
+    '.wave.on{transform:scale(1.15)}',
     '.wave.on span{animation:wave 1.6s ease-in-out}',
+    '.is-open .wave{opacity:0;transform:scale(.4)}',
     '@keyframes wave{0%,100%{transform:rotate(0)}10%,30%,50%{transform:rotate(18deg)}20%,40%{transform:rotate(-10deg)}60%{transform:rotate(0)}}',
 
     /* panel: animates open from the launcher's corner */
@@ -104,7 +100,7 @@
     'transform-origin:bottom ' + side + ';opacity:0;transform:translateY(16px) scale(.94);visibility:hidden;pointer-events:none;',
     'transition:opacity .28s var(--ease),transform .45s var(--ease),visibility 0s linear .45s}',
     '.is-open .panel{opacity:1;transform:none;visibility:visible;pointer-events:auto;transition:opacity .3s var(--ease),transform .5s var(--ease),visibility 0s}',
-    '@media (prefers-reduced-motion:reduce){.panel,.launcher,.launcher .ico,.wave,.stage{transition:none!important}.launcher .dot::after,.wave.on span{animation:none}}',
+    '@media (prefers-reduced-motion:reduce){.panel,.launcher,.launcher .ico,.wave,.stage{transition:none!important}.wave.on span{animation:none}}',
 
     'header{display:flex;align-items:center;gap:10px;padding:14px 14px 10px 18px}',
     'header .titles{flex:1;min-width:0}',
@@ -171,10 +167,10 @@
     '<button class="round mic" type="button" aria-pressed="false" aria-label="Mute microphone" title="Mute microphone">' + icon('mic') + '</button>' +
     '<button class="round end" type="button" aria-label="End conversation" title="End conversation">' + icon('end') + '</button>' +
     '</div></footer></section>' +
-    '<div class="dock"><span class="wave" aria-hidden="true"><span>\uD83D\uDC4B</span></span>' +
+    '<div class="dock">' +
     '<button class="launcher" type="button" aria-expanded="false" aria-label="Talk to my AI assistant" title="Talk to my AI assistant">' +
-    '<span class="ico ico-chat">' + icon('chat') + '</span><span class="ico ico-close">' + icon('chevron') + '</span>' +
-    '<span class="dot" aria-hidden="true"></span></button></div>' +
+    '<span class="ico ico-chat">' + icon('agent') + '</span><span class="ico ico-close">' + icon('chevron') + '</span>' +
+    '<span class="wave" aria-hidden="true"><span>\uD83D\uDC4B</span></span></button></div>' +
     '</div>';
 
   function $(sel) { return root.querySelector(sel); }
@@ -673,7 +669,7 @@
   launcher.addEventListener('click', function () { setOpen(!wrap.classList.contains('is-open')); });
 
   // Every 10 seconds, while the panel is closed and the tab is visible, a hand
-  // waves beside the launcher for 2 seconds.
+  // on the launcher waves for 2 seconds.
   setInterval(function () {
     if (wrap.classList.contains('is-open') || document.hidden) return;
     wave.classList.add('on');
