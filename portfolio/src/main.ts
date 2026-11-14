@@ -1,5 +1,5 @@
 import '@fontsource-variable/inter/wght.css';
-import '@fontsource/instrument-serif/latin-400-italic.css';
+import '@fontsource-variable/space-grotesk/wght.css';
 import './styles.css';
 
 /** The Cloudflare Worker that serves the voice assistant's embed widget. */
@@ -67,6 +67,7 @@ function splitWords(el: HTMLElement, wordClass: string, nested: boolean) {
     keep.style.whiteSpace = 'nowrap';
     before.before(keep);
     keep.append(before, word);
+    word.classList.add('punct');
   });
   // Screen readers get the sentence once; the animated spans are presentation only.
   el.setAttribute('aria-label', label);

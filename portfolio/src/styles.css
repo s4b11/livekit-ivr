@@ -2,7 +2,7 @@
 :root {
   color-scheme: light;
   --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-serif: 'Instrument Serif', ui-serif, Georgia, serif;
+  --font-accent: 'Space Grotesk Variable', 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
 
   /* One theme: plain white with lavender. */
@@ -129,10 +129,10 @@ dd {
 }
 
 em {
-  font-family: var(--font-serif);
-  font-style: italic;
-  font-weight: 400;
-  letter-spacing: -0.01em;
+  font-family: var(--font-accent);
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: -0.035em;
 }
 
 a {
@@ -388,16 +388,6 @@ svg {
   color: var(--ink-3);
 }
 
-.brand-mark {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: conic-gradient(from 0deg, var(--lav-300), var(--lav-600), var(--lav-200), var(--lav-300));
-  -webkit-mask: radial-gradient(circle, transparent 5px, #000 6px);
-  mask: radial-gradient(circle, transparent 5px, #000 6px);
-  animation: spin 7s linear infinite;
-}
-
 @keyframes spin {
   to {
     transform: rotate(1turn);
@@ -416,18 +406,32 @@ svg {
 }
 
 .nav-links a {
-  display: block;
+  display: inline-grid;
   padding: 8px 14px;
-  border-radius: 999px;
   color: var(--ink-2);
   font-size: 0.92em;
-  transition: color 0.25s, background-color 0.25s;
+  font-weight: 450;
+  transition: color 0.25s, font-weight 0.25s;
 }
 
-.nav-links a:hover,
+/* An invisible bold copy of the label keeps the width fixed, so the links don't
+   shift when one turns bold. */
+.nav-links a::after {
+  content: attr(data-label);
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  font-weight: 650;
+  pointer-events: none;
+}
+
+.nav-links a:hover {
+  color: var(--lav-700);
+}
+
 .nav-links a.is-active {
   color: var(--lav-700);
-  background: var(--lav-100);
+  font-weight: 650;
 }
 
 .nav-actions {
@@ -632,7 +636,7 @@ svg {
 
 .hero-title {
   margin-top: clamp(20px, 3vw, 30px);
-  font-size: clamp(38px, 9.4vw, 76px);
+  font-size: clamp(38px, 9.4vw, 72px);
   font-weight: 640;
   line-height: 0.99;
   letter-spacing: -0.045em;
@@ -651,6 +655,16 @@ svg {
 
 .js .hero-title em {
   background: none;
+}
+
+/* The accent face is wider than Inter; tighten it so the headline keeps its shape. */
+.hero-title em {
+  letter-spacing: -0.055em;
+}
+
+/* Punctuation after an accent word sits close to it. */
+.hero-title .punct {
+  margin-left: -0.08em;
 }
 
 .word {
