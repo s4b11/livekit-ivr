@@ -1,0 +1,36 @@
+// Cloudflare Worker: serves the React voice UI and the embed widget, mints
+// LiveKit tokens, and stores transcripts and messages in D1.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "assistant",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*", "/health"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "sabith-assistant",
+      // Filled in by scripts/ensure-d1.mjs at deploy time. Local dev ignores it.
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ],
+  // Non-secret settings. Secrets (LIVEKIT_URL, LIVEKIT_API_KEY,
+  // LIVEKIT_API_SECRET, BACKEND_API_KEY) are set by the deploy workflow.
+  "vars": {
+    "AGENT_NAME": "sabith-assistant",
+    "WEB_ROOM_PREFIX": "web-",
+    "TOKEN_TTL_MINUTES": "3",
+    // Anti-spam: conversations per visitor IP (web) or caller (phone) per UTC day.
+    "SESSIONS_PER_DAY": "2",
+    // Shown by the widget as a countdown. The agent enforces the limit itself
+    // (MAX_SESSION_SECONDS in the agent's settings); keep the two in step.
+    "MAX_SESSION_SECONDS": "90",
+    "EMBED_ALLOWED_ORIGINS": "*"
+  },
+  "observability": { "enabled": true }
+}

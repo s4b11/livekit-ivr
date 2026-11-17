@@ -1,0 +1,30 @@
+# --- Secrets: never commit ---
+.env
+.env.*
+!.env.example
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# --- Testing ---
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# --- Web project ---
+node_modules/
+web/dist/
+
+# --- Runtime artifacts ---
+transcripts_fallback/
+
+# --- Editors / OS ---
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

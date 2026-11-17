@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sabith's AI assistant - embed demo</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; line-height: 1.6;
+           max-width: 640px; margin: 0 auto; padding: 48px 16px 120px; }
+    code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 14px; }
+    pre { padding: 14px 16px; border-radius: 10px; overflow-x: auto; background: rgba(127, 127, 127, .15); }
+  </style>
+</head>
+<body>
+  <h1>Sabith's AI assistant</h1>
+  <p>
+    This page embeds the assistant widget. Use the button in the corner to talk
+    to it by voice or text - ask who Sabith is, what he builds, or leave him a message.
+  </p>
+  <h2>Embed it on any site</h2>
+  <p>Add one script tag, pointing at wherever this API is hosted:</p>
+  <pre><code id="snippet"></code></pre>
+  <script>
+    document.getElementById("snippet").textContent =
+      '<script src="' + location.origin + '/embed/embed.js" defer><\/script>';
+  </script>
+  <script src="embed.js" defer></script>
+</body>
+</html>
